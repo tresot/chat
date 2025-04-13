@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Connexion</title>
   <style>
     body {
@@ -74,80 +75,76 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <p class="title">Connexion</p>
     <form id="loginForm">
       <div class="form_group">
-        <label for="username">Nom</label>
-        <input type="text" id="username" required>
+        <label for="name">Nom</label>
+        <input type="text" id="name" required />
       </div>
       <div class="form_group">
-        <label for="password">Mot de passe</label>
-        <input type="text" id="password" required>
+        <label for="passwordInput">Mot de passe</label>
+        <input type="password" id="passwordInput" required />
       </div>
-      <button type="submit" class="btn">Rejoindre</button>
+      <button type="submit" class="btn">Se connecter</button>
       <p id="errorMessage" class="error-message"></p>
     </form>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <script>
+    // Configuration Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyCkV_c-GdMEObA7YowgEySij5GL0eZYk7E",
+      apiKey: "AIzaSyD-tZYpLUW_-DQ9wl3YmFCl_E6oReTvLVs",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
       storageBucket: "chat-entre-amis.appspot.com",
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
+    const db = firebase.firestore();
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
       e.preventDefault();
-      const nom = document.getElementById("username").value.trim();
-      const motdepasse = document.getElementById("password").value.trim();
+      verifierMotDePasse();
+    });
+
+    function verifierMotDePasse() {
+      const name = document.getElementById("name").value.trim();
+      const passwordEntre = document.getElementById("passwordInput").value.trim();
       const errorMessage = document.getElementById("errorMessage");
 
-      errorMessage.textContent = "";
-
-      if (!nom || !motdepasse) {
-        errorMessage.textContent = "Veuillez remplir les deux champs.";
+      if (!name || !passwordEntre) {
+        errorMessage.textContent = "Veuillez remplir tous les champs.";
         return;
       }
 
-      auth.signInAnonymously()
-        .then(() => {
-          return db.collection("motsDePasseAutorises").doc(nom).get();
-        })
-        .then(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data.motdepasse === motdepasse && data.actif === true) {
-              sessionStorage.setItem("motdepasseValide", "oui");
-              sessionStorage.setItem("nom", nom);
-              window.location.href = "chat.html";
-            } else {
-              errorMessage.textContent = "Mot de passe incorrect ou compte inactif.";
-              auth.signOut();
-            }
+      db.collection("motsDePasseAutorises")
+        .where("motdepasse", "==", passwordEntre)
+        .where("actif", "==", true)
+        .get()
+        .then(querySnapshot => {
+          if (!querySnapshot.empty) {
+            // Succès
+            sessionStorage.setItem("nomUtilisateur", name);
+            window.location.href = "chat.html";
           } else {
-            errorMessage.textContent = "Nom introuvable.";
-            auth.signOut();
+            errorMessage.textContent = "Mot de passe invalide ou inactif.";
           }
         })
         .catch(error => {
-          console.error("Erreur Firebase :", error);
+          console.error("Erreur Firestore :", error);
           errorMessage.textContent = "Erreur lors de la connexion.";
         });
-    });
+    }
   </script>
 </body>
+
 </html>
