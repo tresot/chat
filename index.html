@@ -1,113 +1,132 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion au Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion au Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-        .container {
-            background-color: #EDDCD9;
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #264143;
-            box-shadow: 3px 4px 0px 1px #E99F4C;
-            width: 80%;
-            max-width: 400px;
-        }
+    .login-box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 400px;
+    }
 
-        .title {
-            text-align: center;
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #264143;
-        }
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #264143;
+    }
 
-        .form_group {
-            margin-bottom: 15px;
-        }
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
 
-        .form_group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+    .login-box button {
+      width: 100%;
+      padding: 10px;
+      background-color: #264143;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-        .form_group input {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 2px solid #264143;
-            border-radius: 5px;
-            box-shadow: 3px 4px 0px 1px #E99F4C;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #DE5499;
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 3px 3px 0px 0px #E99F4C;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .error-message {
-            color: red;
-            margin-top: 10px;
-            text-align: center;
-        }
-    </style>
+    .error {
+      color: red;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <p class="title">Connexion au Chat</p>
-        <form id="loginForm">
-            <div class="form_group">
-                <label for="name">Nom personnalisé</label>
-                <input type="text" id="name" required>
-            </div>
-            <div class="form_group">
-                <label for="password">Mot de passe secret</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="btn">Entrer dans le Chat</button>
-            <p id="errorMessage" class="error-message"></p>
-        </form>
-    </div>
+  <div class="login-box">
+    <h2>Connexion au Chat</h2>
+    <input type="text" id="username" placeholder="Ton prénom (ex: Tiavina)" />
+    <input type="email" id="email" placeholder="Ton adresse email" />
+    <input type="password" id="password" placeholder="Mot de passe secret" />
+    <button onclick="login()">Aller au Chat</button>
+    <div id="error" class="error"></div>
+  </div>
 
-    <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const name = document.getElementById("name").value.trim();
-            const password = document.getElementById("password").value;
-            const secret = "CodeSecretTiavina";
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-            if (password === secret && name !== "") {
-                sessionStorage.setItem("username", name);
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
+      authDomain: "chat-entre-amis.firebaseapp.com",
+      projectId: "chat-entre-amis",
+      storageBucket: "chat-entre-amis.appspot.com",
+      messagingSenderId: "515377701483",
+      appId: "1:515377701483:web:0f81538de26d5904f9472e"
+    };
+
+    // Initialisation Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Persistance de session locale
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const errorBox = document.getElementById("error");
+
+      // Mot de passe attendu
+      const secretPass = "CodeSecretTiavina";
+
+      if (pass !== secretPass) {
+        errorBox.textContent = "Mot de passe incorrect.";
+        return;
+      }
+
+      if (!email || !username) {
+        errorBox.textContent = "Remplis tous les champs.";
+        return;
+      }
+
+      // Connexion ou inscription
+      firebase.auth().signInWithEmailAndPassword(email, secretPass)
+        .then(() => {
+          sessionStorage.setItem("username", username);
+          window.location.href = "chat.html";
+        })
+        .catch((error) => {
+          // Si l’utilisateur n'existe pas, on crée le compte
+          if (error.code === "auth/user-not-found") {
+            firebase.auth().createUserWithEmailAndPassword(email, secretPass)
+              .then(() => {
+                sessionStorage.setItem("username", username);
                 window.location.href = "chat.html";
-            } else {
-                document.getElementById("errorMessage").textContent = "Nom ou mot de passe incorrect.";
-            }
+              })
+              .catch((err) => {
+                errorBox.textContent = "Erreur création : " + err.message;
+              });
+          } else {
+            errorBox.textContent = "Erreur connexion : " + error.message;
+          }
         });
-    </script>
+    }
+  </script>
 </body>
-
 </html>
