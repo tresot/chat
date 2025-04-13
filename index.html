@@ -18,37 +18,21 @@
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      width: 300px;
     }
     input, button {
       display: block;
       width: 100%;
       margin-top: 1rem;
       padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    #error {
-      color: red;
-      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div id="loginBox">
-    <h2>Se connecter</h2>
-    <input id="username" placeholder="Nom d'utilisateur" type="text" />
-    <input id="password" placeholder="Mot de passe" type="password" />
+    <h2>Mot de passe du groupe</h2>
+    <input id="password" placeholder="Mot de passe" type="text" />
     <button onclick="login()">Rejoindre</button>
-    <p id="error"></p>
+    <p id="error" style="color: red;"></p>
   </div>
 
   <!-- Firebase SDK -->
@@ -69,33 +53,36 @@
     const db = firebase.firestore();
 
     function login() {
-      const username = document.getElementById("username").value.trim();
       const pass = document.getElementById("password").value.trim();
-
-      if (!username || !pass) {
-        document.getElementById("error").innerText = "Veuillez entrer un nom d'utilisateur et un mot de passe.";
+      if (!pass) {
+        document.getElementById("error").innerText = "Veuillez entrer un mot de passe.";
         return;
       }
 
+      // Début du processus de connexion anonyme
       auth.signInAnonymously()
         .then(() => {
+          console.log("Utilisateur authentifié anonymement");
+          // Recherche du mot de passe dans Firestore
           return db.collection("motsDePasseAutorises")
             .where("motdepasse", "==", pass)
             .where("actif", "==", true)
-            .where("nom", "==", username)  // Vérification du nom d'utilisateur
             .get();
         })
         .then(snapshot => {
           if (!snapshot.empty) {
+            console.log("Mot de passe valide !");
+            // Stocke la session pour valider la connexion
             sessionStorage.setItem("motdepasseValide", "oui");
             window.location.href = "chat.html";
           } else {
-            document.getElementById("error").innerText = "Nom d'utilisateur ou mot de passe invalide.";
-            auth.signOut();
+            console.log("Mot de passe invalide ou document non trouvé");
+            document.getElementById("error").innerText = "Mot de passe invalide.";
+            auth.signOut(); // Déconnexion si erreur
           }
         })
         .catch(error => {
-          console.error(error);
+          console.error("Erreur lors de la connexion : ", error);
           document.getElementById("error").innerText = "Erreur lors de la connexion.";
         });
     }
