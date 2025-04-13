@@ -15,7 +15,7 @@
             height: 100vh;
             margin: 0;
         }
-        
+
         .container {
             background-color: #EDDCD9;
             padding: 40px;
@@ -25,7 +25,7 @@
             width: 80%;
             max-width: 400px;
         }
-        
+
         .title {
             text-align: center;
             font-size: 1.8em;
@@ -33,17 +33,17 @@
             margin-bottom: 20px;
             color: #264143;
         }
-        
+
         .form_group {
             margin-bottom: 15px;
         }
-        
+
         .form_group label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
         }
-        
+
         .form_group input {
             width: calc(100% - 22px);
             padding: 10px;
@@ -51,7 +51,7 @@
             border-radius: 5px;
             box-shadow: 3px 4px 0px 1px #E99F4C;
         }
-        
+
         .btn {
             width: 100%;
             padding: 12px;
@@ -63,11 +63,11 @@
             box-shadow: 3px 3px 0px 0px #E99F4C;
             cursor: pointer;
         }
-        
+
         .btn:hover {
             opacity: 0.9;
         }
-        
+
         .error-message {
             color: red;
             margin-top: 10px;
@@ -81,11 +81,11 @@
         <p class="title">S'inscrire</p>
         <form id="signupForm">
             <div class="form_group">
-                <label for="name">Nom</label>
-                <input type="text" id="name" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
             </div>
             <div class="form_group">
-                <label for="password">Mot de passe secret</label>
+                <label for="password">Mot de passe</label>
                 <input type="password" id="password" required>
             </div>
             <button type="submit" class="btn">Accéder au Chat</button>
@@ -93,19 +93,43 @@
         </form>
     </div>
 
-    <script>
-        document.getElementById("signupForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const name = document.getElementById("name").value;
-            const password = document.getElementById("password").value;
-            const secretPassword = "chatgroup"; // Le mot de passe secret
+    <!-- Firebase SDK version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-            if (password === secretPassword) {
-                sessionStorage.setItem("username", name);
-                window.location.href = "chat.html";
-            } else {
-                document.getElementById("errorMessage").textContent = "Mot de passe incorrect !";
-            }
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
+            authDomain: "chat-entre-amis.firebaseapp.com",
+            projectId: "chat-entre-amis",
+            storageBucket: "chat-entre-amis.appspot.com",
+            messagingSenderId: "515377701483",
+            appId: "1:515377701483:web:0f81538de26d5904f9472e"
+        };
+
+        // Initialisation Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        document.getElementById("signupForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            // Création d'un utilisateur
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    sessionStorage.setItem("username", email); // Utiliser l'email comme pseudo
+                    window.location.href = "chat.html"; // Rediriger vers la page de chat
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    document.getElementById("errorMessage").textContent = `Erreur: ${errorMessage}`;
+                });
         });
     </script>
 </body>
