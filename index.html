@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription</title>
+    <title>Connexion au Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -78,58 +78,34 @@
 
 <body>
     <div class="container">
-        <p class="title">S'inscrire</p>
-        <form id="signupForm">
+        <p class="title">Connexion au Chat</p>
+        <form id="loginForm">
             <div class="form_group">
-                <label for="email">Email</label>
-                <input type="email" id="email" required>
+                <label for="name">Nom personnalisé</label>
+                <input type="text" id="name" required>
             </div>
             <div class="form_group">
-                <label for="password">Mot de passe</label>
+                <label for="password">Mot de passe secret</label>
                 <input type="password" id="password" required>
             </div>
-            <button type="submit" class="btn">Accéder au Chat</button>
+            <button type="submit" class="btn">Entrer dans le Chat</button>
             <p id="errorMessage" class="error-message"></p>
         </form>
     </div>
 
-    <!-- Firebase SDK version 8 -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
     <script>
-        // Configuration Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
-            authDomain: "chat-entre-amis.firebaseapp.com",
-            projectId: "chat-entre-amis",
-            storageBucket: "chat-entre-amis.appspot.com",
-            messagingSenderId: "515377701483",
-            appId: "1:515377701483:web:0f81538de26d5904f9472e"
-        };
-
-        // Initialisation Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        document.getElementById("signupForm").addEventListener("submit", function (e) {
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            
-            const email = document.getElementById("email").value;
+            const name = document.getElementById("name").value.trim();
             const password = document.getElementById("password").value;
+            const secret = "CodeSecretTiavina";
 
-            // Création d'un utilisateur
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    sessionStorage.setItem("username", email); // Utiliser l'email comme pseudo
-                    window.location.href = "chat.html"; // Rediriger vers la page de chat
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    document.getElementById("errorMessage").textContent = `Erreur: ${errorMessage}`;
-                });
+            if (password === secret && name !== "") {
+                sessionStorage.setItem("username", name);
+                window.location.href = "chat.html";
+            } else {
+                document.getElementById("errorMessage").textContent = "Nom ou mot de passe incorrect.";
+            }
         });
     </script>
 </body>
