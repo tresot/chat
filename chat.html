@@ -122,6 +122,14 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // 🔒 Vérification de connexion (sécurité)
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // Redirection si l'utilisateur n'est pas connecté
+                window.location.href = "index.html"; // à adapter selon ta page de connexion
+            }
+        });
+
         // Récupération du pseudo
         const username = sessionStorage.getItem("username") || "Anonyme";
         document.getElementById("chatHeader").innerText = `Chat - ${username}`;
