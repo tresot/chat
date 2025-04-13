@@ -1,77 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discussion</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #eef2f3;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       height: 100vh;
     }
 
-    .chat-container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      width: 90%;
-      max-width: 600px;
-      height: 90vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-header {
+    header {
       background-color: #264143;
       color: white;
-      padding: 15px;
-      font-size: 1.2em;
-      font-weight: bold;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
+      padding: 10px;
+      text-align: center;
     }
 
-    .chat-messages {
-      flex-grow: 1;
-      padding: 15px;
+    #messages {
+      flex: 1;
+      padding: 10px;
       overflow-y: auto;
-      background-color: #f0f0f0;
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
 
-    .chat-message {
-      margin: 8px 0;
-      max-width: 80%;
+    .message {
+      background-color: white;
       padding: 10px;
       border-radius: 10px;
+      max-width: 70%;
+      word-wrap: break-word;
       position: relative;
     }
 
-    .chat-message small {
-      display: block;
-      font-size: 0.7em;
-      color: #333;
-      margin-bottom: 4px;
-    }
-
-    .sent {
-      background-color: #DE5499;
-      color: white;
+    .own {
       align-self: flex-end;
+      background-color: #d1f5d3;
     }
 
-    .received {
-      background-color: #E99F4C;
-      color: white;
-      align-self: flex-start;
+    .sender {
+      font-size: 0.7em;
+      color: #555;
+      margin-bottom: 3px;
     }
 
     .delete-btn {
@@ -80,27 +56,27 @@
       right: 10px;
       background: none;
       border: none;
-      color: white;
-      font-size: 0.9em;
+      color: red;
       cursor: pointer;
+      font-size: 0.8em;
     }
 
-    .chat-input {
+    footer {
       display: flex;
       padding: 10px;
-      border-top: 1px solid #ccc;
+      background-color: #fff;
     }
 
-    .chat-input input {
+    input[type="text"] {
       flex: 1;
       padding: 10px;
-      border-radius: 8px;
       border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-right: 10px;
     }
 
-    .chat-input button {
-      padding: 10px 20px;
-      margin-left: 10px;
+    button {
+      padding: 10px 15px;
       background-color: #264143;
       color: white;
       border: none;
@@ -109,16 +85,17 @@
     }
   </style>
 </head>
-
 <body>
-  <div class="chat-container">
-    <div class="chat-header" id="chatHeader">Chat</div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Tape ton message..." />
-      <button onclick="sendMessage()">Envoyer</button>
-    </div>
-  </div>
+  <header>
+    <h2>Salon de discussion</h2>
+  </header>
+
+  <div id="messages"></div>
+
+  <footer>
+    <input type="text" id="messageInput" placeholder="Écris un message..." />
+    <button onclick="sendMessage()">Envoyer</button>
+  </footer>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -126,7 +103,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <script>
-    // Configuration Firebase
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
@@ -140,88 +117,75 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Récupération du pseudo
-    const username = sessionStorage.getItem("username");
-
-    // Redirection si pas de session ou pas connecté
-    if (!username) window.location.href = "index.html";
-
+    // Vérifie si l’utilisateur est connecté
     auth.onAuthStateChanged(user => {
-      if (!user) window.location.href = "index.html";
-    });
+      if (!user || !sessionStorage.getItem("username")) {
+        window.location.href = "index.html";
+        return;
+      }
 
-    document.getElementById("chatHeader").innerText = `Chat - ${username}`;
+      const username = sessionStorage.getItem("username");
+      const messagesDiv = document.getElementById("messages");
 
-    // Envoi d’un message
-    function sendMessage() {
-      const input = document.getElementById("messageInput");
-      const msg = input.value.trim();
-      if (msg !== "") {
+      // Écoute en temps réel
+      db.collection("messages").orderBy("timestamp")
+        .onSnapshot(snapshot => {
+          messagesDiv.innerHTML = "";
+          const docs = snapshot.docs;
+
+          // Supprimer les anciens si + de 95
+          if (docs.length > 95) {
+            const toDelete = docs.slice(0, docs.length - 95);
+            toDelete.forEach(doc => {
+              if (doc.exists) doc.ref.delete();
+            });
+          }
+
+          docs.forEach(doc => {
+            const msg = doc.data();
+            const div = document.createElement("div");
+            div.className = "message" + (msg.uid === user.uid ? " own" : "");
+
+            const sender = document.createElement("div");
+            sender.className = "sender";
+            sender.textContent = msg.username || "Anonyme";
+
+            const content = document.createElement("div");
+            content.textContent = msg.text;
+
+            div.appendChild(sender);
+            div.appendChild(content);
+
+            // Bouton de suppression
+            if (msg.uid === user.uid) {
+              const delBtn = document.createElement("button");
+              delBtn.className = "delete-btn";
+              delBtn.innerHTML = "🗑️";
+              delBtn.onclick = () => doc.ref.delete();
+              div.appendChild(delBtn);
+            }
+
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          });
+        });
+
+      // Envoi du message
+      window.sendMessage = () => {
+        const input = document.getElementById("messageInput");
+        const text = input.value.trim();
+        if (text === "") return;
+
         db.collection("messages").add({
-          username: username,
-          uid: auth.currentUser.uid,
-          message: msg,
+          text,
+          username,
+          uid: user.uid,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+
         input.value = "";
-        input.focus();
-      }
-    }
-
-    // Suppression de message
-    function deleteMessage(id) {
-      db.collection("messages").doc(id).delete();
-    }
-
-    // Affichage en temps réel
-    db.collection("messages").orderBy("timestamp").onSnapshot(async snapshot => {
-      const messagesContainer = document.getElementById("chatMessages");
-      messagesContainer.innerHTML = "";
-
-      const docs = snapshot.docs;
-
-      // Suppression auto si plus de 95 messages
-      if (docs.length > 95) {
-        const batch = db.batch();
-        for (let i = 0; i < docs.length - 95; i++) {
-          batch.delete(docs[i].ref);
-        }
-        await batch.commit();
-      }
-
-      docs.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "chat-message " + (data.username === username ? "sent" : "received");
-
-        const small = document.createElement("small");
-        small.innerText = data.username;
-        div.appendChild(small);
-
-        const message = document.createElement("div");
-        message.innerText = data.message;
-        div.appendChild(message);
-
-        // Ajout bouton supprimer si utilisateur
-        if (data.uid === auth.currentUser.uid) {
-          const btn = document.createElement("button");
-          btn.innerText = "🗑️";
-          btn.className = "delete-btn";
-          btn.onclick = () => deleteMessage(doc.id);
-          div.appendChild(btn);
-        }
-
-        messagesContainer.appendChild(div);
-      });
-
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
-
-    // Envoi avec touche Entrée
-    document.getElementById("messageInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") sendMessage();
+      };
     });
   </script>
 </body>
-
 </html>
