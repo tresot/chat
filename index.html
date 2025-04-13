@@ -1,76 +1,131 @@
+
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion au Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
 
-    .login-box {
+    .chat-container {
       background-color: white;
-      padding: 30px;
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       width: 90%;
-      max-width: 400px;
+      max-width: 600px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    .login-box h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #264143;
+    .chat-header {
+      background-color: #264143;
+      color: white;
+      padding: 15px;
+      font-size: 1.2em;
+      font-weight: bold;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
     }
 
-    .login-box input {
-      width: 100%;
+    .chat-messages {
+      flex-grow: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 8px 0;
+      max-width: 80%;
       padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .message .name {
+      font-size: 0.75em;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .sent {
+      background-color: #DE5499;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .received {
+      background-color: #E99F4C;
+      color: white;
+      align-self: flex-start;
+    }
+
+    .delete-button {
+      position: absolute;
+      top: 2px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
       border-radius: 8px;
+      border: 1px solid #ccc;
     }
 
-    .login-box button {
-      width: 100%;
-      padding: 10px;
+    .chat-input button {
+      padding: 10px 20px;
+      margin-left: 10px;
       background-color: #264143;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
     }
-
-    .error {
-      color: red;
-      margin-top: 10px;
-      text-align: center;
-    }
   </style>
 </head>
+
 <body>
-  <div class="login-box">
-    <h2>Connexion au Chat</h2>
-    <input type="text" id="username" placeholder="Ton prénom (ex: Tiavina)" />
-    <input type="email" id="email" placeholder="Ton adresse email" />
-    <input type="password" id="password" placeholder="Mot de passe secret" />
-    <button onclick="login()">Aller au Chat</button>
-    <div id="error" class="error"></div>
+  <div class="chat-container">
+    <div class="chat-header" id="chatHeader">Chat</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Tape ton message...">
+      <button onclick="sendMessage()">Envoyer</button>
+    </div>
   </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <script>
-    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
@@ -80,53 +135,85 @@
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
 
-    // Initialisation Firebase
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    // Persistance de session locale
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-    function login() {
-      const email = document.getElementById("email").value.trim();
-      const pass = document.getElementById("password").value.trim();
-      const username = document.getElementById("username").value.trim();
-      const errorBox = document.getElementById("error");
-
-      // Mot de passe attendu
-      const secretPass = "CodeSecretTiavina";
-
-      if (pass !== secretPass) {
-        errorBox.textContent = "Mot de passe incorrect.";
-        return;
-      }
-
-      if (!email || !username) {
-        errorBox.textContent = "Remplis tous les champs.";
-        return;
-      }
-
-      // Connexion ou inscription
-      firebase.auth().signInWithEmailAndPassword(email, secretPass)
-        .then(() => {
-          sessionStorage.setItem("username", username);
-          window.location.href = "chat.html";
-        })
-        .catch((error) => {
-          // Si l’utilisateur n'existe pas, on crée le compte
-          if (error.code === "auth/user-not-found") {
-            firebase.auth().createUserWithEmailAndPassword(email, secretPass)
-              .then(() => {
-                sessionStorage.setItem("username", username);
-                window.location.href = "chat.html";
-              })
-              .catch((err) => {
-                errorBox.textContent = "Erreur création : " + err.message;
-              });
-          } else {
-            errorBox.textContent = "Erreur connexion : " + error.message;
-          }
-        });
+    // Vérifie que l'utilisateur a passé par index.html
+    const username = sessionStorage.getItem("username");
+    if (!username) {
+      window.location.href = "index.html";
     }
+
+    document.getElementById("chatHeader").innerText = `Chat - ${username}`;
+
+    // Connexion anonyme
+    auth.signInAnonymously().catch(console.error);
+
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const msg = input.value.trim();
+      if (msg) {
+        db.collection("messages").add({
+          username: username,
+          message: msg,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = "";
+        input.focus();
+      }
+    }
+
+    db.collection("messages").orderBy("timestamp")
+      .onSnapshot(async (snapshot) => {
+        const messagesContainer = document.getElementById("chatMessages");
+        messagesContainer.innerHTML = "";
+
+        if (snapshot.size >= 95) {
+          const batch = db.batch();
+          snapshot.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = `message ${data.username === username ? "sent" : "received"}`;
+
+          const nameElem = document.createElement("span");
+          nameElem.className = "name";
+          nameElem.textContent = data.username;
+
+          const msgElem = document.createElement("span");
+          msgElem.textContent = data.message;
+
+          div.appendChild(nameElem);
+          div.appendChild(msgElem);
+
+          // Bouton supprimer si c'est son message
+          if (data.username === username) {
+            const delBtn = document.createElement("button");
+            delBtn.className = "delete-button";
+            delBtn.textContent = "✕";
+            delBtn.onclick = () => {
+              db.collection("messages").doc(doc.id).delete();
+            };
+            div.appendChild(delBtn);
+          }
+
+          messagesContainer.appendChild(div);
+        });
+
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+
+    document.getElementById("messageInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
   </script>
 </body>
+
 </html>
