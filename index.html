@@ -2,112 +2,109 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion au Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrée</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-        .container {
-            background-color: #EDDCD9;
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #264143;
-            box-shadow: 3px 4px 0px 1px #E99F4C;
-            width: 80%;
-            max-width: 400px;
-        }
+    .container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
 
-        .title {
-            text-align: center;
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #264143;
-        }
+    input {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-        .form_group {
-            margin-bottom: 15px;
-        }
+    button {
+      padding: 10px;
+      width: 100%;
+      background-color: #264143;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-        .form_group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .form_group input {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 2px solid #264143;
-            border-radius: 5px;
-            box-shadow: 3px 4px 0px 1px #E99F4C;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #DE5499;
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 3px 3px 0px 0px #E99F4C;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .error-message {
-            color: red;
-            margin-top: 10px;
-            text-align: center;
-        }
-    </style>
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <p class="title">Connexion au Chat</p>
-        <form id="loginForm">
-            <div class="form_group">
-                <label for="name">Nom personnalisé</label>
-                <input type="text" id="name" required>
-            </div>
-            <div class="form_group">
-                <label for="password">Mot de passe secret</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="btn">Entrer dans le Chat</button>
-            <p id="errorMessage" class="error-message"></p>
-        </form>
-    </div>
+  <div class="container">
+    <h2>Entre ton nom et le mot de passe</h2>
+    <input type="text" id="username" placeholder="Ton nom">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button onclick="login()">Aller au chat</button>
+    <div class="error" id="error"></div>
+  </div>
 
-    <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const name = document.getElementById("name").value.trim();
-            const password = document.getElementById("password").value;
-            const secret = "juste1";
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-            if (password === secret && name !== "") {
-                sessionStorage.setItem("username", name);
-                window.location.href = "chat.html";
-            } else {
-                document.getElementById("errorMessage").textContent = "Nom ou mot de passe incorrect.";
-            }
-        });
-    </script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
+      authDomain: "chat-entre-amis.firebaseapp.com",
+      projectId: "chat-entre-amis",
+      storageBucket: "chat-entre-amis.appspot.com",
+      messagingSenderId: "515377701483",
+      appId: "1:515377701483:web:0f81538de26d5904f9472e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const errorDiv = document.getElementById("error");
+
+      if (!username || !password) {
+        errorDiv.textContent = "Remplis tous les champs.";
+        return;
+      }
+
+      // Le bon mot de passe
+      const correctPassword = "motdepasse123"; // à remplacer par ton vrai mot de passe
+
+      if (password === correctPassword) {
+        // Connexion anonyme
+        auth.signInAnonymously()
+          .then(() => {
+            sessionStorage.setItem("username", username);
+            window.location.href = "chat.html";
+          })
+          .catch((error) => {
+            errorDiv.textContent = "Erreur Firebase : " + error.message;
+          });
+      } else {
+        errorDiv.textContent = "Mot de passe incorrect.";
+      }
+    }
+  </script>
 </body>
 
 </html>
