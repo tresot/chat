@@ -79,7 +79,7 @@
 
       auth.signInAnonymously()
         .then(() => {
-          return db.collection("motsDePasseAutorisés")
+          return db.collection("motsDePasseAutorises")
             .where("motdepasse", "==", pass)
             .where("actif", "==", true)
             .where("nom", "==", username)  // Vérification du nom d'utilisateur
