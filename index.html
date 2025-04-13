@@ -1,46 +1,103 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connexion</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
-    #loginBox {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+
+    .container {
+      background-color: #EDDCD9;
+      padding: 40px;
+      border-radius: 15px;
+      border: 2px solid #264143;
+      box-shadow: 3px 4px 0px 1px #E99F4C;
+      width: 80%;
+      max-width: 400px;
     }
-    input, button {
+
+    .title {
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #264143;
+    }
+
+    .form_group {
+      margin-bottom: 15px;
+    }
+
+    .form_group label {
       display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .form_group input {
+      width: calc(100% - 22px);
+      padding: 10px;
+      border: 2px solid #264143;
+      border-radius: 5px;
+      box-shadow: 3px 4px 0px 1px #E99F4C;
+    }
+
+    .btn {
       width: 100%;
-      margin-top: 1rem;
-      padding: 0.5rem;
+      padding: 12px;
+      background-color: #DE5499;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 3px 3px 0px 0px #E99F4C;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div id="loginBox">
-    <h2>Mot de passe du groupe</h2>
-    <input id="password" placeholder="Mot de passe" type="text" />
-    <button onclick="login()">Rejoindre</button>
-    <p id="error" style="color: red;"></p>
+  <div class="container">
+    <p class="title">Connexion</p>
+    <form id="loginForm">
+      <div class="form_group">
+        <label for="username">Nom</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="form_group">
+        <label for="password">Mot de passe</label>
+        <input type="text" id="password" required>
+      </div>
+      <button type="submit" class="btn">Rejoindre</button>
+      <p id="errorMessage" class="error-message"></p>
+    </form>
   </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
   <script>
-    var firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyCkV_c-GdMEObA7YowgEySij5GL0eZYk7E",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
@@ -48,44 +105,49 @@
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
 
-    function login() {
-      const pass = document.getElementById("password").value.trim();
-      if (!pass) {
-        document.getElementById("error").innerText = "Veuillez entrer un mot de passe.";
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const nom = document.getElementById("username").value.trim();
+      const motdepasse = document.getElementById("password").value.trim();
+      const errorMessage = document.getElementById("errorMessage");
+
+      errorMessage.textContent = "";
+
+      if (!nom || !motdepasse) {
+        errorMessage.textContent = "Veuillez remplir les deux champs.";
         return;
       }
 
-      // Début du processus de connexion anonyme
       auth.signInAnonymously()
         .then(() => {
-          console.log("Utilisateur authentifié anonymement");
-          // Recherche du mot de passe dans Firestore
-          return db.collection("motsDePasseAutorises")
-            .where("motdepasse", "==", pass)
-            .where("actif", "==", true)
-            .get();
+          return db.collection("motsDePasseAutorises").doc(nom).get();
         })
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            console.log("Mot de passe valide !");
-            // Stocke la session pour valider la connexion
-            sessionStorage.setItem("motdepasseValide", "oui");
-            window.location.href = "chat.html";
+        .then(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data.motdepasse === motdepasse && data.actif === true) {
+              sessionStorage.setItem("motdepasseValide", "oui");
+              sessionStorage.setItem("nom", nom);
+              window.location.href = "chat.html";
+            } else {
+              errorMessage.textContent = "Mot de passe incorrect ou compte inactif.";
+              auth.signOut();
+            }
           } else {
-            console.log("Mot de passe invalide ou document non trouvé");
-            document.getElementById("error").innerText = "Mot de passe invalide.";
-            auth.signOut(); // Déconnexion si erreur
+            errorMessage.textContent = "Nom introuvable.";
+            auth.signOut();
           }
         })
         .catch(error => {
-          console.error("Erreur lors de la connexion : ", error);
-          document.getElementById("error").innerText = "Erreur lors de la connexion.";
+          console.error("Erreur Firebase :", error);
+          errorMessage.textContent = "Erreur lors de la connexion.";
         });
-    }
+    });
   </script>
 </body>
 </html>
