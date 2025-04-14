@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion</title>
+  <title>Connexion - Debug</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -73,12 +73,20 @@
       margin-top: 10px;
       text-align: center;
     }
+
+    .debug {
+      font-size: 0.85em;
+      margin-top: 20px;
+      background-color: #fff0f0;
+      padding: 10px;
+      border: 1px dashed red;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <p class="title">Connexion</p>
+    <p class="title">Connexion (Debug)</p>
     <form id="loginForm">
       <div class="form_group">
         <label for="name">Nom</label>
@@ -91,6 +99,7 @@
       <button type="submit" class="btn">Se connecter</button>
       <p id="errorMessage" class="error-message"></p>
     </form>
+    <div id="debugLog" class="debug"></div>
   </div>
 
   <!-- Firebase SDK v8 -->
@@ -98,7 +107,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <script>
-    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD-tZYpLUW_-DQ9wl3YmFCl_E6oReTvLVs",
       authDomain: "chat-entre-amis.firebaseapp.com",
@@ -108,40 +116,60 @@
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
     firebase.initializeApp(firebaseConfig);
-
     const db = firebase.firestore();
+
+    const errorMessage = document.getElementById("errorMessage");
+    const debugLog = document.getElementById("debugLog");
 
     document.getElementById("loginForm").addEventListener("submit", function (e) {
       e.preventDefault();
       verifierMotDePasse();
     });
 
+    function logDebug(message) {
+      debugLog.innerHTML += `<p>${message}</p>`;
+      console.log("[DEBUG]", message);
+    }
+
     function verifierMotDePasse() {
       const name = document.getElementById("name").value.trim();
       const passwordEntre = document.getElementById("passwordInput").value.trim();
-      const errorMessage = document.getElementById("errorMessage");
+      errorMessage.textContent = "";
+      debugLog.innerHTML = "";
 
       if (!name || !passwordEntre) {
         errorMessage.textContent = "Veuillez remplir tous les champs.";
+        logDebug("Champs nom ou mot de passe vide.");
         return;
       }
+
+      logDebug(`Tentative de connexion avec mot de passe : "${passwordEntre}"`);
 
       db.collection("motsDePasseAutorises")
         .where("motdepasse", "==", passwordEntre)
         .where("actif", "==", true)
         .get()
         .then(querySnapshot => {
+          logDebug(`Requête effectuée. Documents trouvés : ${querySnapshot.size}`);
+
           if (!querySnapshot.empty) {
-            // Succès
+            querySnapshot.forEach(doc => {
+              const data = doc.data();
+              logDebug(`Document trouvé : motdepasse="${data.motdepasse}", actif=${data.actif}`);
+            });
+
             sessionStorage.setItem("nomUtilisateur", name);
+            logDebug("Connexion réussie. Redirection vers chat.html...");
             window.location.href = "chat.html";
           } else {
             errorMessage.textContent = "Mot de passe invalide ou inactif.";
+            logDebug("Aucun mot de passe correspondant ou actif trouvé.");
           }
         })
         .catch(error => {
           console.error("Erreur Firestore :", error);
           errorMessage.textContent = "Erreur lors de la connexion.";
+          logDebug("Erreur lors de la requête Firestore : " + error.message);
         });
     }
   </script>
