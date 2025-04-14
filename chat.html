@@ -61,7 +61,7 @@
   </style>
 </head>
 <body>
-  <div id="erreur">Erreur : Accès non autorisé. Redirection dans 5 secondes...</div>
+  <div id="erreur">Erreur : Accès non autorisé. Veuillez vous connecter d'abord.</div>
   <div id="messages" style="display:none;"></div>
   <div id="formulaire" style="display:none;">
     <input id="message" placeholder="Ton message..." />
@@ -74,7 +74,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
     var firebaseConfig = {
-      apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
+      apiKey: "AIzaSyCkV_c-GdMEObA7YowgEySij5GL0eZYk7E",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
       storageBucket: "chat-entre-amis.appspot.com",
@@ -95,9 +95,6 @@
 
       if (!user || !passeOK) {
         erreurDiv.style.display = "block";
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 5000);
       } else {
         messagesDiv.style.display = "block";
         formulaire.style.display = "flex";
@@ -160,4 +157,3 @@
   </script>
 </body>
 </html>
-
