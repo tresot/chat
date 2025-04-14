@@ -158,9 +158,18 @@
               logDebug(`Document trouvé : motdepasse="${data.motdepasse}", actif=${data.actif}`);
             });
 
-            sessionStorage.setItem("nomUtilisateur", name);
-            logDebug("Connexion réussie. Redirection vers chat.html...");
-            window.location.href = "chat.html";
+            firebase.auth().signInAnonymously()
+  .then(() => {
+    sessionStorage.setItem("motdepasseValide", "oui");
+    sessionStorage.setItem("nomUtilisateur", name);
+    logDebug("Connexion réussie. Redirection vers chat.html...");
+    window.location.href = "chat.html";
+  })
+  .catch(error => {
+    console.error("Erreur lors de la connexion anonyme :", error);
+    alert("Erreur lors de la connexion.");
+  });
+
           } else {
             errorMessage.textContent = "Mot de passe invalide ou inactif.";
             logDebug("Aucun mot de passe correspondant ou actif trouvé.");
