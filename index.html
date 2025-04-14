@@ -1,60 +1,353 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: linear-gradient(to bottom right, #4a90e2, #9013fe);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      width: 300px;
-    }
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      margin-top: 1.5rem;
-      padding: 0.5rem;
-      background: #4a90e2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #erreur {
-      color: red;
-      margin-top: 1rem;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Connexion au chat</h2>
-    <input id="nom" type="text" placeholder="Ton nom" />
-    <input id="mdp" type="password" placeholder="Mot de passe" />
-    <button onclick="connexion()">Se connecter</button>
-    <div id="erreur"></div>
-  </div>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion</title>
+    <style>
+        /* From Uiverse.io by Novaxlo */
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            height: 100vh;
+            background: linear-gradient(135deg, #e0dfff, #ffffff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            width: 15.5em;
+            height: 22.5em;
+            border: 2px solid #24135a;
+            border-bottom-left-radius: 1.5em;
+            border-top-right-radius: 1.5em;
+            box-shadow: -10px 0px 0px #24135a, -10px 5px 5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+        
+        #login-area,
+        #email-area,
+        #password-area,
+        #footer-area {
+            position: relative;
+            z-index: 2;
+        }
+        
+        #login-area {
+            width: 100%;
+            height: 3.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        #login-area p {
+            top: 0.35em;
+            font-size: 1.5em;
+            font-weight: bold;
+            position: absolute;
+            z-index: 2;
+        }
+        
+        #login-area #behind {
+            top: 60%;
+            font-size: 1em;
+            font-weight: bold;
+            position: absolute;
+            z-index: 1;
+        }
+        
+        #behind {
+            position: absolute;
+            left: 1em;
+            color: #6041bf;
+        }
+        
+        #email-area {
+            width: 100%;
+            padding-left: 10%;
+            padding-right: 10%;
+            height: 5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 1em;
+            transition: all 0.25s ease;
+        }
+        
+        #email-area input {
+            width: 100%;
+            border: 2px solid #6041bf;
+            border-radius: 0.5em;
+            height: 2.5em;
+            padding-left: 1em;
+            font-size: 0.95em;
+            font-weight: 100;
+            transition: all 0.5s ease;
+            outline: none;
+            box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2);
+        }
+        
+        #password-area {
+            width: 100%;
+            padding-left: 10%;
+            padding-right: 10%;
+            height: 6em;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            flex-direction: column;
+            transition: all 0.25s ease;
+        }
+        
+        #password-area input {
+            width: 100%;
+            border: 2px solid #6041bf;
+            font-size: 0.95em;
+            border-radius: 0.5em;
+            height: 2.5em;
+            padding-left: 1em;
+            transition: all 0.25s ease;
+            outline: none;
+            box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2);
+        }
+        
+        #password-area a {
+            padding-top: 0.5em;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.25s ease;
+            color: #6041bf;
+            text-decoration: none;
+        }
+        
+        #footer-area {
+            margin-top: 0%;
+            padding-top: 0%;
+            width: 100%;
+            padding-left: 10%;
+            padding-right: 10%;
+            height: 7em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #6041bf;
+            transition: all 0.25s ease;
+        }
+        
+        #footer-area button {
+            width: 100%;
+            border: 2px solid #6041bf;
+            border-radius: 0.5em;
+            height: 2.5em;
+            padding-left: 1em;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: all 0.25s ease;
+            color: white;
+            background-color: #6041bf;
+            box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+        
+        #footer-area p,
+        #footer-area a {
+            font-size: 0.8em;
+            transition: all 0.25s ease;
+        }
+        
+        #text-inside {
+            padding-top: 0.5em;
+            display: flex;
+        }
+        
+        #link {
+            padding-left: 0.1em;
+            font-weight: bold;
+            color: #6041bf;
+            cursor: pointer;
+        }
+        
+        #background-color {
+            width: 100%;
+            height: 3.5em;
+            background-color: #6041bf;
+            position: absolute;
+            top: 0em;
+            z-index: 1;
+            transition: all 0.5s ease;
+            box-shadow: inset 5px 0px #24135a;
+        }
+        
+        #link-circle {
+            width: 100%;
+            height: 4.5em;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding-left: 15%;
+            padding-right: 15%;
+        }
+        
+        #link-circle svg {
+            transition: all 0.25s ease;
+        }
+        
+        #whitefilter {
+            width: 3.5em;
+            height: 3.5em;
+            top: 2.5px;
+            right: 2.5px;
+            position: absolute;
+            z-index: 2;
+            border-top-right-radius: 1.25em;
+            box-shadow: 35px -35px 0px -1px white;
+        }
+        
+         ::placeholder {
+            color: #6041bf;
+            font-weight: bold;
+        }
+        
+        .form:hover {
+            width: 16em;
+            height: 23em;
+        }
+        
+        #email-area:hover~#background-color {
+            height: 4.2em;
+            transform: translateY(4em);
+        }
+        
+        #email-area:hover,
+        #password-area:hover,
+        #footer-area:hover {
+            padding-left: 5%;
+            padding-right: 5%;
+        }
+        
+        #email-area:hover p {
+            color: white;
+        }
+        
+        #email-area:hover input {
+            color: white;
+            border: 2px solid white;
+            background-color: #6041bf;
+            height: 3em;
+        }
+        
+        #email-area:hover ::placeholder {
+            color: white;
+        }
+        
+        #password-area:hover~#background-color {
+            height: 5.5em;
+            transform: translateY(7.8em);
+        }
+        
+        #footer-area:hover~#background-color {
+            height: 5.9em;
+            transform: translateY(13.2em);
+        }
+        
+        #password-area:hover p {
+            color: white;
+        }
+        
+        #password-area:hover a {
+            color: white;
+            padding-right: 5%;
+        }
+        
+        #password-area:hover input {
+            color: white;
+            border: 2px solid white;
+            background-color: #6041bf;
+            height: 3em;
+        }
+        
+        #password-area:hover ::placeholder {
+            color: white;
+        }
+        
+        #footer-area:hover p,
+        #footer-area:hover a {
+            color: white;
+        }
+        
+        #footer-area:hover button {
+            border: 2px solid white;
+            background-color: #6041bf;
+            height: 3em;
+        }
+        
+        #footer-area button:active {
+            color: #6041bf;
+            background-color: white;
+            width: 90%;
+        }
+        
+        #link-circle svg:hover {
+            transform: scale(1.25);
+            margin: 0.5em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form class="form">
+        <div id="login-area">
+            <p>LOGIN</p>
+            <p id="behind">Log in to your account</p>
+        </div>
+
+        <div id="email-area">
+            <input placeholder="EMAIL" id="email" class="input" type="text" />
+        </div>
+
+        <div id="password-area">
+            <input placeholder="PASSWORD" id="password" class="input" type="password" />
+            <a href="#">Forgot password?</a>
+        </div>
+
+        <div id="footer-area">
+            <button type="submit">Log In</button>
+            <div id="text-inside">
+                <p>Don't have an account?</p>
+                <a id="link" href="#">Sign Up</a>
+            </div>
+        </div>
+
+        <div id="background-color"></div>
+        <div id="whitefilter"></div>
+        <div id="link-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="#6041bf">
+        <path d="M12 0c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0zm4 7.278V4.5h-2.286c-2.1 0-3.428 1.6-3.428 3.889v1.667H8v2.777h2.286V19.5h2.857v-6.667h2.286L16 10.056h-2.857V8.944c0-1.11.572-1.666 1.714-1.666H16z"></path>
+      </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="#6041bf">
+        <path d="M12 0c6.6274 0 12 5.3726 12 12s-5.3726 12-12 12S0 18.6274 0 12 5.3726 0 12 0zm3.115 4.5h-6.23c-2.5536 0-4.281 1.6524-4.3805 4.1552L4.5 8.8851v6.1996c0 1.3004.4234 2.4193 1.2702 3.2359.7582.73 1.751 1.1212 2.8818 1.1734l.2633.006h6.1694c1.3004 0 2.389-.4234 3.1754-1.1794.762-.734 1.1817-1.7576 1.2343-2.948l.0056"></path>
+      </svg>
+        </div>
+    </form>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
