@@ -7,52 +7,52 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f3f3f3;
-      margin: 0;
+      background: linear-gradient(to bottom right, #4a90e2, #9013fe);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       width: 300px;
     }
     input {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      padding: 0.5rem;
+      margin-top: 1rem;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 8px;
     }
     button {
       width: 100%;
-      padding: 10px;
-      background: #007BFF;
-      color: #fff;
+      margin-top: 1.5rem;
+      padding: 0.5rem;
+      background: #4a90e2;
+      color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      background: #0056b3;
-    }
-    .error {
+    #erreur {
       color: red;
-      font-size: 0.9rem;
+      margin-top: 1rem;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Se connecter</h2>
-    <input id="nom" type="text" placeholder="Nom d'utilisateur" />
-    <input id="motdepasse" type="password" placeholder="Mot de passe" />
+    <h2>Connexion au chat</h2>
+    <input id="nom" type="text" placeholder="Ton nom" />
+    <input id="mdp" type="password" placeholder="Mot de passe" />
     <button onclick="connexion()">Se connecter</button>
-    <div id="erreur" class="error" style="display:none;"></div>
+    <div id="erreur"></div>
   </div>
 
   <!-- Firebase -->
@@ -60,7 +60,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    var firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
@@ -69,48 +69,53 @@
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    function connexion() {
-      const nom = document.getElementById("nom").value.trim();
-      const motdepasse = document.getElementById("motdepasse").value.trim();
-      const erreurDiv = document.getElementById("erreur");
+    function afficherErreur(msg) {
+      document.getElementById("erreur").textContent = msg;
+    }
 
-      if (!nom || !motdepasse) {
-        erreurDiv.textContent = "Nom d'utilisateur et mot de passe sont requis.";
-        erreurDiv.style.display = "block";
+    async function connexion() {
+      const nom = document.getElementById("nom").value.trim();
+      const mdp = document.getElementById("mdp").value.trim();
+
+      if (!nom || !mdp) {
+        afficherErreur("Veuillez remplir tous les champs.");
         return;
       }
 
-      // Vérification du mot de passe dans Firestore
-      db.collection("utilisateurs")
-        .where("nom", "==", nom)
-        .get()
-        .then(querySnapshot => {
-          if (querySnapshot.empty) {
-            erreurDiv.textContent = "Nom d'utilisateur incorrect.";
-            erreurDiv.style.display = "block";
-            return;
-          }
-          
-          const userDoc = querySnapshot.docs[0];
-          const utilisateur = userDoc.data();
-          
-          if (utilisateur.motdepasse === motdepasse) {
-            // Authentification réussie
-            sessionStorage.setItem("nomUtilisateur", nom);
-            sessionStorage.setItem("motdepasseValide", "oui");
-            window.location.href = "chat.html";  // Redirection vers le chat
-          } else {
-            erreurDiv.textContent = "Mot de passe incorrect.";
-            erreurDiv.style.display = "block";
-          }
-        })
-        .catch(error => {
-          console.error("Erreur lors de la connexion : ", error);
-          erreurDiv.textContent = "Erreur lors de la connexion.";
-          erreurDiv.style.display = "block";
-        });
+      try {
+        const doc = await db.collection("motsDePasseAutorises").doc(nom).get();
+        if (!doc.exists) {
+          afficherErreur("Nom invalide.");
+          return;
+        }
+
+        const data = doc.data();
+        if (!data.actif) {
+          afficherErreur("Compte inactif.");
+          return;
+        }
+
+        if (data.motdepasse !== mdp) {
+          afficherErreur("Mot de passe incorrect.");
+          return;
+        }
+
+        // Connexion Firebase Anonyme
+        await auth.signInAnonymously();
+
+        // Stockage nom + validation mot de passe
+        sessionStorage.setItem("nomUtilisateur", nom);
+        sessionStorage.setItem("motdepasseValide", "oui");
+
+        // Redirection
+        window.location.href = "chat.html";
+      } catch (e) {
+        console.error(e);
+        afficherErreur("Erreur lors de la connexion.");
+      }
     }
   </script>
 </body>
