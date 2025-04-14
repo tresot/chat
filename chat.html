@@ -80,6 +80,8 @@
     const messagesDiv = document.getElementById("messages");
 
     auth.onAuthStateChanged(user => {
+      console.log("Utilisateur :", user);
+      console.log("Mot de passe valide ?", sessionStorage.getItem("motdepasseValide"));
       if (!user || sessionStorage.getItem("motdepasseValide") !== "oui") {
         window.location.href = "index.html";
       } else {
