@@ -1,114 +1,45 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion - Debug</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
+      font-family: sans-serif;
+      background: #d0e0ff;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       margin: 0;
     }
-
-    .container {
-      background-color: #EDDCD9;
-      padding: 40px;
-      border-radius: 15px;
-      border: 2px solid #264143;
-      box-shadow: 3px 4px 0px 1px #E99F4C;
-      width: 80%;
-      max-width: 400px;
+    input, button {
+      margin: 0.5rem;
+      padding: 0.5rem;
     }
-
-    .title {
-      text-align: center;
-      font-size: 1.8em;
-      font-weight: bold;
-      margin-bottom: 20px;
-      color: #264143;
-    }
-
-    .form_group {
-      margin-bottom: 15px;
-    }
-
-    .form_group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .form_group input {
-      width: calc(100% - 22px);
-      padding: 10px;
-      border: 2px solid #264143;
-      border-radius: 5px;
-      box-shadow: 3px 4px 0px 1px #E99F4C;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #DE5499;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 3px 3px 0px 0px #E99F4C;
-      cursor: pointer;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .error-message {
-      color: red;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .debug {
-      font-size: 0.85em;
-      margin-top: 20px;
-      background-color: #fff0f0;
-      padding: 10px;
-      border: 1px dashed red;
+    #debug {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #555;
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <p class="title">Connexion (Debug)</p>
-    <form id="loginForm">
-      <div class="form_group">
-        <label for="name">Nom</label>
-        <input type="text" id="name" required />
-      </div>
-      <div class="form_group">
-        <label for="passwordInput">Mot de passe</label>
-        <input type="password" id="passwordInput" required />
-      </div>
-      <button type="submit" class="btn">Se connecter</button>
-      <p id="errorMessage" class="error-message"></p>
-    </form>
-    <div id="debugLog" class="debug"></div>
-  </div>
+  <h1>Rejoins le chat entre amis</h1>
+  <input id="nom" placeholder="Ton nom" />
+  <input id="mdp" placeholder="Mot de passe" type="password" />
+  <button onclick="verifierMotDePasse()">Connexion</button>
+  <div id="debug"></div>
 
-  <!-- Firebase SDK v8 -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyD-tZYpLUW_-DQ9wl3YmFCl_E6oReTvLVs",
+      apiKey: "AIzaSyCkV_c-GdMEObA7YowgEySij5GL0eZYk7E",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
       storageBucket: "chat-entre-amis.appspot.com",
@@ -117,71 +48,53 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const errorMessage = document.getElementById("errorMessage");
-    const debugLog = document.getElementById("debugLog");
-
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      verifierMotDePasse();
-    });
-
-    function logDebug(message) {
-      debugLog.innerHTML += `<p>${message}</p>`;
-      console.log("[DEBUG]", message);
+    function logDebug(msg) {
+      document.getElementById("debug").textContent = msg;
+      console.log(msg);
     }
 
     function verifierMotDePasse() {
-      const name = document.getElementById("name").value.trim();
-      const passwordEntre = document.getElementById("passwordInput").value.trim();
-      errorMessage.textContent = "";
-      debugLog.innerHTML = "";
+      const name = document.getElementById("nom").value.trim();
+      const mdp = document.getElementById("mdp").value.trim();
 
-      if (!name || !passwordEntre) {
-        errorMessage.textContent = "Veuillez remplir tous les champs.";
-        logDebug("Champs nom ou mot de passe vide.");
+      if (!name || !mdp) {
+        alert("Nom et mot de passe requis.");
         return;
       }
 
-      logDebug(`Tentative de connexion avec mot de passe : "${passwordEntre}"`);
+      logDebug('Tentative de connexion avec mot de passe : "' + mdp + '"');
 
       db.collection("motsDePasseAutorises")
-        .where("motdepasse", "==", passwordEntre)
+        .where("motdepasse", "==", mdp)
         .where("actif", "==", true)
         .get()
-        .then(querySnapshot => {
-          logDebug(`Requête effectuée. Documents trouvés : ${querySnapshot.size}`);
-
-          if (!querySnapshot.empty) {
-            querySnapshot.forEach(doc => {
-              const data = doc.data();
-              logDebug(`Document trouvé : motdepasse="${data.motdepasse}", actif=${data.actif}`);
-            });
-
-            firebase.auth().signInAnonymously()
-  .then(() => {
-    sessionStorage.setItem("motdepasseValide", "oui");
-    sessionStorage.setItem("nomUtilisateur", name);
-    logDebug("Connexion réussie. Redirection vers chat.html...");
-    window.location.href = "chat.html";
-  })
-  .catch(error => {
-    console.error("Erreur lors de la connexion anonyme :", error);
-    alert("Erreur lors de la connexion.");
-  });
-
+        .then(snapshot => {
+          logDebug("Requête effectuée. Documents trouvés : " + snapshot.size);
+          if (!snapshot.empty) {
+            logDebug("Mot de passe valide, connexion anonyme en cours...");
+            auth.signInAnonymously()
+              .then(() => {
+                sessionStorage.setItem("motdepasseValide", "oui");
+                sessionStorage.setItem("nomUtilisateur", name);
+                logDebug("Connexion réussie. Redirection vers chat.html...");
+                window.location.href = "chat.html";
+              })
+              .catch(error => {
+                console.error("Erreur Firebase Auth :", error);
+                alert("Erreur lors de la connexion.");
+              });
           } else {
-            errorMessage.textContent = "Mot de passe invalide ou inactif.";
-            logDebug("Aucun mot de passe correspondant ou actif trouvé.");
+            alert("Mot de passe invalide ou désactivé.");
+            logDebug("Mot de passe incorrect ou inactif.");
           }
         })
         .catch(error => {
-          console.error("Erreur Firestore :", error);
-          errorMessage.textContent = "Erreur lors de la connexion.";
-          logDebug("Erreur lors de la requête Firestore : " + error.message);
+          console.error("Erreur lors de la requête Firestore :", error);
+          alert("Erreur lors de la vérification.");
         });
     }
   </script>
 </body>
-
 </html>
