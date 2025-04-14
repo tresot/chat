@@ -7,50 +7,52 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f0f0ff;
+      background: #f3f3f3;
+      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-    #login-box {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       width: 300px;
     }
-    input, button {
+    input {
       width: 100%;
-      padding: 0.7rem;
-      margin-top: 1rem;
+      padding: 10px;
+      margin: 10px 0;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     button {
-      background: #4b55e1;
-      color: white;
-      font-weight: bold;
+      width: 100%;
+      padding: 10px;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
-    #debug {
-      margin-top: 1rem;
-      font-size: 0.8rem;
-      color: #444;
-      background: #eee;
-      padding: 0.5rem;
-      border-radius: 6px;
-      display: none;
+    button:hover {
+      background: #0056b3;
+    }
+    .error {
+      color: red;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-  <div id="login-box">
-    <h2>Rejoins le chat</h2>
-    <input type="text" id="nom" placeholder="Ton nom" />
-    <input type="password" id="mdp" placeholder="Mot de passe secret" />
-    <button onclick="connexion()">Connexion</button>
-    <div id="debug"></div>
+  <div class="container">
+    <h2>Se connecter</h2>
+    <input id="nom" type="text" placeholder="Nom d'utilisateur" />
+    <input id="motdepasse" type="password" placeholder="Mot de passe" />
+    <button onclick="connexion()">Se connecter</button>
+    <div id="erreur" class="error" style="display:none;"></div>
   </div>
 
   <!-- Firebase -->
@@ -58,7 +60,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    const firebaseConfig = {
+    var firebaseConfig = {
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
@@ -66,58 +68,50 @@
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    function logDebug(message) {
-      const debug = document.getElementById("debug");
-      debug.style.display = "block";
-      debug.textContent = message;
-      console.log(message);
-    }
-
     function connexion() {
-      const name = document.getElementById("nom").value.trim();
-      const password = document.getElementById("mdp").value.trim();
-      if (!name || !password) {
-        alert("Remplis ton nom et le mot de passe.");
+      const nom = document.getElementById("nom").value.trim();
+      const motdepasse = document.getElementById("motdepasse").value.trim();
+      const erreurDiv = document.getElementById("erreur");
+
+      if (!nom || !motdepasse) {
+        erreurDiv.textContent = "Nom d'utilisateur et mot de passe sont requis.";
+        erreurDiv.style.display = "block";
         return;
       }
 
-      logDebug(`Tentative avec mot de passe : "${password}"`);
-
-      db.collection("motsDePasseAutorises")
-        .where("motdepasse", "==", password)
-        .where("actif", "==", true)
+      // Vérification du mot de passe dans Firestore
+      db.collection("utilisateurs")
+        .where("nom", "==", nom)
         .get()
-        .then(snapshot => {
-          logDebug(`Requête effectuée. Documents trouvés : ${snapshot.size}`);
-          if (!snapshot.empty) {
-            logDebug("Mot de passe valide, connexion anonyme en cours...");
-            auth.signInAnonymously()
-              .then(() => {
-                sessionStorage.setItem("motdepasseValide", "oui");
-                sessionStorage.setItem("nomUtilisateur", name);
-                logDebug("Connexion réussie. Redirection vers chat.html...");
-                window.location.href = "chat.html";
-              })
-              .catch(error => {
-                logDebug("Erreur Firebase Auth : " + error.message);
-                alert("Erreur Firebase Auth : " + error.message);
-              });
+        .then(querySnapshot => {
+          if (querySnapshot.empty) {
+            erreurDiv.textContent = "Nom d'utilisateur incorrect.";
+            erreurDiv.style.display = "block";
+            return;
+          }
+          
+          const userDoc = querySnapshot.docs[0];
+          const utilisateur = userDoc.data();
+          
+          if (utilisateur.motdepasse === motdepasse) {
+            // Authentification réussie
+            sessionStorage.setItem("nomUtilisateur", nom);
+            sessionStorage.setItem("motdepasseValide", "oui");
+            window.location.href = "chat.html";  // Redirection vers le chat
           } else {
-            logDebug("Mot de passe invalide.");
-            alert("Mot de passe incorrect ou désactivé.");
+            erreurDiv.textContent = "Mot de passe incorrect.";
+            erreurDiv.style.display = "block";
           }
         })
         .catch(error => {
-          logDebug("Erreur Firestore : " + error.message);
-          alert("Erreur lors de la vérification du mot de passe.");
+          console.error("Erreur lors de la connexion : ", error);
+          erreurDiv.textContent = "Erreur lors de la connexion.";
+          erreurDiv.style.display = "block";
         });
     }
   </script>
 </body>
 </html>
-
