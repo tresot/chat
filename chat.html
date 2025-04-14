@@ -77,32 +77,27 @@
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
       projectId: "chat-entre-amis",
-      storageBucket: "chat-entre-amis.appspot.com",
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
     const messagesDiv = document.getElementById("messages");
     const formulaire = document.getElementById("formulaire");
     const erreurDiv = document.getElementById("erreur");
 
-    auth.onAuthStateChanged(user => {
-      console.log("Utilisateur :", user);
-      const passeOK = sessionStorage.getItem("motdepasseValide") === "oui";
+    // Vérifier si l'utilisateur est connecté
+    const nomUtilisateur = sessionStorage.getItem("nomUtilisateur");
+    if (!nomUtilisateur || sessionStorage.getItem("motdepasseValide") !== "oui") {
+      erreurDiv.style.display = "block";
+    } else {
+      messagesDiv.style.display = "block";
+      formulaire.style.display = "flex";
+      chargerMessages(nomUtilisateur);
+    }
 
-      if (!user || !passeOK) {
-        erreurDiv.style.display = "block";
-      } else {
-        messagesDiv.style.display = "block";
-        formulaire.style.display = "flex";
-        chargerMessages(user.uid);
-      }
-    });
-
-    function chargerMessages(uid) {
+    function chargerMessages(nomUtilisateur) {
       db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(snapshot => {
@@ -114,45 +109,34 @@
             }
           }
           docs.forEach(doc => {
-            const msg = doc.data();
-            const div = document.createElement("div");
-            div.className = "msg";
-
-            const auteur = document.createElement("div");
-            auteur.className = "auteur";
-            auteur.textContent = msg.auteur || "Anonyme";
-            div.appendChild(auteur);
-
-            const texte = document.createElement("div");
-            texte.textContent = msg.texte;
-            div.appendChild(texte);
-
-            if (msg.uid === uid) {
-              const bouton = document.createElement("div");
-              bouton.textContent = "🗑";
-              bouton.className = "supprimer";
-              bouton.onclick = () => doc.ref.delete();
-              div.appendChild(bouton);
-            }
-
-            messagesDiv.appendChild(div);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            const data = doc.data();
+            const divMsg = document.createElement("div");
+            divMsg.classList.add("msg");
+            divMsg.innerHTML = `
+              <div class="auteur">${data.nom}</div>
+              <div class="contenu">${data.message}</div>
+              ${data.nom === nomUtilisateur ? '<span class="supprimer" onclick="supprimerMessage(\'' + doc.id + '\')">X</span>' : ''}
+            `;
+            messagesDiv.appendChild(divMsg);
           });
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
     }
 
     function envoyer() {
-      const champ = document.getElementById("message");
-      const texte = champ.value.trim();
-      if (!texte) return;
-      const user = auth.currentUser;
-      db.collection("messages").add({
-        texte: texte,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        uid: user.uid,
-        auteur: "Utilisateur"
-      });
-      champ.value = "";
+      const message = document.getElementById("message").value.trim();
+      if (message) {
+        db.collection("messages").add({
+          nom: nomUtilisateur,
+          message: message,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("message").value = "";
+      }
+    }
+
+    function supprimerMessage(id) {
+      db.collection("messages").doc(id).delete();
     }
   </script>
 </body>
