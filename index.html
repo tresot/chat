@@ -7,31 +7,51 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #d0e0ff;
+      background: #f0f0ff;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      margin: 0;
+    }
+    #login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 300px;
     }
     input, button {
-      margin: 0.5rem;
-      padding: 0.5rem;
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #4b55e1;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
     #debug {
       margin-top: 1rem;
       font-size: 0.8rem;
-      color: #555;
+      color: #444;
+      background: #eee;
+      padding: 0.5rem;
+      border-radius: 6px;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>Rejoins le chat entre amis</h1>
-  <input id="nom" placeholder="Ton nom" />
-  <input id="mdp" placeholder="Mot de passe" type="password" />
-  <button onclick="verifierMotDePasse()">Connexion</button>
-  <div id="debug"></div>
+  <div id="login-box">
+    <h2>Rejoins le chat</h2>
+    <input type="text" id="nom" placeholder="Ton nom" />
+    <input type="password" id="mdp" placeholder="Mot de passe secret" />
+    <button onclick="connexion()">Connexion</button>
+    <div id="debug"></div>
+  </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -46,32 +66,34 @@
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    function logDebug(msg) {
-      document.getElementById("debug").textContent = msg;
-      console.log(msg);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function logDebug(message) {
+      const debug = document.getElementById("debug");
+      debug.style.display = "block";
+      debug.textContent = message;
+      console.log(message);
     }
 
-    function verifierMotDePasse() {
+    function connexion() {
       const name = document.getElementById("nom").value.trim();
-      const mdp = document.getElementById("mdp").value.trim();
-
-      if (!name || !mdp) {
-        alert("Nom et mot de passe requis.");
+      const password = document.getElementById("mdp").value.trim();
+      if (!name || !password) {
+        alert("Remplis ton nom et le mot de passe.");
         return;
       }
 
-      logDebug('Tentative de connexion avec mot de passe : "' + mdp + '"');
+      logDebug(`Tentative avec mot de passe : "${password}"`);
 
       db.collection("motsDePasseAutorises")
-        .where("motdepasse", "==", mdp)
+        .where("motdepasse", "==", password)
         .where("actif", "==", true)
         .get()
         .then(snapshot => {
-          logDebug("Requête effectuée. Documents trouvés : " + snapshot.size);
+          logDebug(`Requête effectuée. Documents trouvés : ${snapshot.size}`);
           if (!snapshot.empty) {
             logDebug("Mot de passe valide, connexion anonyme en cours...");
             auth.signInAnonymously()
@@ -82,19 +104,20 @@
                 window.location.href = "chat.html";
               })
               .catch(error => {
-                console.error("Erreur Firebase Auth :", error);
-                alert("Erreur lors de la connexion.");
+                logDebug("Erreur Firebase Auth : " + error.message);
+                alert("Erreur Firebase Auth : " + error.message);
               });
           } else {
-            alert("Mot de passe invalide ou désactivé.");
-            logDebug("Mot de passe incorrect ou inactif.");
+            logDebug("Mot de passe invalide.");
+            alert("Mot de passe incorrect ou désactivé.");
           }
         })
         .catch(error => {
-          console.error("Erreur lors de la requête Firestore :", error);
-          alert("Erreur lors de la vérification.");
+          logDebug("Erreur Firestore : " + error.message);
+          alert("Erreur lors de la vérification du mot de passe.");
         });
     }
   </script>
 </body>
 </html>
+
