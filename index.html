@@ -314,7 +314,8 @@
 
 <body>
 
-    <form class="form">
+    <form class="form" onsubmit="connexion(); return false;">
+
         <div id="login-area">
             <p>LOGIN</p>
             <p id="behind">Log in to your account</p>
@@ -330,7 +331,7 @@
         </div>
 
         <div id="footer-area">
-            <button type="submit">Log In</button>
+            <button onclick="connexion()">Se connecter</button>
             <div id="text-inside">
                 <p>Don't have an account?</p>
                 <a id="link" href="#">Sign Up</a>
