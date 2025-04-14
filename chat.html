@@ -51,11 +51,19 @@
     button {
       padding: 0.5rem 1rem;
     }
+    #erreur {
+      background: #ffdddd;
+      color: #a00;
+      padding: 1rem;
+      text-align: center;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div id="messages"></div>
-  <div id="formulaire">
+  <div id="erreur">Erreur : Accès non autorisé. Redirection dans 5 secondes...</div>
+  <div id="messages" style="display:none;"></div>
+  <div id="formulaire" style="display:none;">
     <input id="message" placeholder="Ton message..." />
     <button onclick="envoyer()">Envoyer</button>
   </div>
@@ -78,13 +86,21 @@
     const db = firebase.firestore();
 
     const messagesDiv = document.getElementById("messages");
+    const formulaire = document.getElementById("formulaire");
+    const erreurDiv = document.getElementById("erreur");
 
     auth.onAuthStateChanged(user => {
       console.log("Utilisateur :", user);
-      console.log("Mot de passe valide ?", sessionStorage.getItem("motdepasseValide"));
-      if (!user || sessionStorage.getItem("motdepasseValide") !== "oui") {
-        window.location.href = "index.html";
+      const passeOK = sessionStorage.getItem("motdepasseValide") === "oui";
+
+      if (!user || !passeOK) {
+        erreurDiv.style.display = "block";
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 5000);
       } else {
+        messagesDiv.style.display = "block";
+        formulaire.style.display = "flex";
         chargerMessages(user.uid);
       }
     });
@@ -144,3 +160,4 @@
   </script>
 </body>
 </html>
+
