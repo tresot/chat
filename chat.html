@@ -6,51 +6,107 @@
   <title>Chat entre amis</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #e9e9ff;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4fc;
       margin: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
+
     #messages {
       flex: 1;
       padding: 1rem;
-      overflow-y: scroll;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: #eef1f8;
     }
+
     .msg {
-      background: white;
-      border-radius: 8px;
-      padding: 0.5rem 1rem;
-      margin-bottom: 0.5rem;
+      background: #fff;
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      max-width: 75%;
       position: relative;
-      max-width: 80%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+      transition: transform 0.2s;
     }
+
+    .msg:hover {
+      transform: scale(1.01);
+    }
+
+    .msg.self {
+      align-self: flex-end;
+      background: #3b82f6;
+      color: white;
+    }
+
+    .msg.self .auteur {
+      color: #dbeafe;
+    }
+
     .auteur {
       font-size: 0.7rem;
       color: #555;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.3rem;
     }
+
+    .contenu {
+      font-size: 0.95rem;
+      word-wrap: break-word;
+    }
+
     .supprimer {
       position: absolute;
-      top: 2px;
-      right: 8px;
+      top: 4px;
+      right: 10px;
       cursor: pointer;
       font-size: 0.8rem;
       color: red;
+      font-weight: bold;
     }
+
     #formulaire {
       display: flex;
-      padding: 1rem;
-      background: #ddd;
+      padding: 0.8rem 1rem;
+      background: #dce1f3;
+      border-top: 1px solid #c3c3ec;
+      gap: 0.5rem;
     }
+
     #message {
       flex: 1;
-      padding: 0.5rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #b8c0e0;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
     }
+
+    #message:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 2px #c4b5fd77;
+    }
+
     button {
       padding: 0.5rem 1rem;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
     }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
     #erreur {
       background: #ffdddd;
       color: #a00;
@@ -87,7 +143,6 @@
     const formulaire = document.getElementById("formulaire");
     const erreurDiv = document.getElementById("erreur");
 
-    // Vérifier si l'utilisateur est connecté
     const nomUtilisateur = sessionStorage.getItem("nomUtilisateur");
     if (!nomUtilisateur || sessionStorage.getItem("motdepasseValide") !== "oui") {
       erreurDiv.style.display = "block";
@@ -112,6 +167,7 @@
             const data = doc.data();
             const divMsg = document.createElement("div");
             divMsg.classList.add("msg");
+            if (data.nom === nomUtilisateur) divMsg.classList.add("self");
             divMsg.innerHTML = `
               <div class="auteur">${data.nom}</div>
               <div class="contenu">${data.message}</div>
