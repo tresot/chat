@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat entre amis</title>
   <style>
+    /* DESIGN MODERNE */
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f4fc;
+      background: linear-gradient(145deg, #e0e7ff, #f9fafb);
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -21,26 +22,27 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      background: #eef1f8;
+      background: #eef2ff;
     }
 
     .msg {
-      background: #fff;
-      border-radius: 12px;
-      padding: 0.6rem 1rem;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 0.8rem 1.2rem;
       max-width: 75%;
       position: relative;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
-      transition: transform 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s;
     }
 
     .msg:hover {
-      transform: scale(1.01);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
 
     .msg.self {
       align-self: flex-end;
-      background: #3b82f6;
+      background: linear-gradient(145deg, #3b82f6, #60a5fa);
       color: white;
     }
 
@@ -55,56 +57,38 @@
     }
 
     .contenu {
-      font-size: 0.95rem;
+      font-size: 1rem;
       word-wrap: break-word;
     }
 
     .supprimer {
       position: absolute;
       top: 4px;
-      right: 10px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      color: red;
-      font-weight: bold;
+      right: 8px;
     }
 
     #formulaire {
       display: flex;
-      padding: 0.8rem 1rem;
-      background: #dce1f3;
+      padding: 1rem;
+      background: #dbeafe;
       border-top: 1px solid #c3c3ec;
       gap: 0.5rem;
+      align-items: center;
     }
 
     #message {
       flex: 1;
       padding: 0.5rem 0.8rem;
-      border-radius: 8px;
-      border: 1px solid #b8c0e0;
+      border-radius: 10px;
+      border: 1px solid #93c5fd;
       font-size: 1rem;
       outline: none;
       transition: 0.2s;
     }
 
     #message:focus {
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 2px #c4b5fd77;
-    }
-
-    button {
-      padding: 0.5rem 1rem;
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background-color: #2563eb;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
 
     #erreur {
@@ -114,14 +98,199 @@
       text-align: center;
       display: none;
     }
+
+    /* TERMINAL LOADER */
+    @keyframes blinkCursor {
+      50% {
+        border-right-color: transparent;
+      }
+    }
+
+    @keyframes typeAndDelete {
+      0%, 10% { width: 0; }
+      45%, 55% { width: 6.2em; }
+      90%, 100% { width: 0; }
+    }
+
+    .terminal-loader {
+      border: 0.1em solid #333;
+      background-color: #1a1a1a;
+      color: #0f0;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1em;
+      padding: 1.5em 1em;
+      width: 12em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+      margin: 1rem auto;
+    }
+
+    .terminal-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1.5em;
+      background-color: #333;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      padding: 0 0.4em;
+      box-sizing: border-box;
+    }
+
+    .terminal-controls {
+      float: right;
+    }
+
+    .control {
+      display: inline-block;
+      width: 0.6em;
+      height: 0.6em;
+      margin-left: 0.4em;
+      border-radius: 50%;
+      background-color: #777;
+    }
+
+    .control.close { background-color: #e33; }
+    .control.minimize { background-color: #ee0; }
+    .control.maximize { background-color: #0b0; }
+
+    .terminal-title {
+      float: left;
+      line-height: 1.5em;
+      color: #eee;
+    }
+
+    .text {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 0.2em solid green;
+      animation:
+        typeAndDelete 4s steps(11) infinite,
+        blinkCursor 0.5s step-end infinite alternate;
+      margin-top: 1.5em;
+    }
+
+    /* DELETE BUTTON */
+    .button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: rgb(20, 20, 20);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition-duration: .3s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .svgIcon {
+      width: 12px;
+      transition-duration: .3s;
+    }
+
+    .svgIcon path {
+      fill: white;
+    }
+
+    .button:hover {
+      width: 140px;
+      border-radius: 50px;
+      background-color: rgb(255, 69, 69);
+    }
+
+    .button:hover .svgIcon {
+      width: 50px;
+      transform: translateY(60%);
+    }
+
+    .button::before {
+      position: absolute;
+      top: -20px;
+      content: "Delete";
+      color: white;
+      transition-duration: .3s;
+      font-size: 2px;
+    }
+
+    .button:hover::before {
+      font-size: 13px;
+      transform: translateY(30px);
+    }
+
+    /* ENVOYER BUTTON */
+    .container-button {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      grid-template-areas: "bt-1 bt-2 bt-3" "bt-4 bt-5 bt-6";
+      position: relative;
+      perspective: 800;
+      width: 135px;
+      height: 47px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .hover { position: absolute; width: 100%; height: 100%; z-index: 200; }
+
+    .bt-1 { grid-area: bt-1; }
+    .bt-2 { grid-area: bt-2; }
+    .bt-3 { grid-area: bt-3; }
+    .bt-4 { grid-area: bt-4; }
+    .bt-5 { grid-area: bt-5; }
+    .bt-6 { grid-area: bt-6; }
+
+    .bt-1:hover ~ button { transform: rotateX(15deg) rotateY(-15deg); box-shadow: -2px -2px #18181888; }
+    .bt-3:hover ~ button { transform: rotateX(15deg) rotateY(15deg); box-shadow: 2px -2px #18181888; }
+    .bt-4:hover ~ button { transform: rotateX(-15deg) rotateY(-15deg); box-shadow: -2px 2px #18181888; }
+
+    .container-button button {
+      grid-column: 1 / span 3;
+      grid-row: 1 / span 2;
+      font-size: 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      transition: 0.3s;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div class="terminal-loader">
+    <div class="terminal-header">
+      <div class="terminal-title">Status</div>
+      <div class="terminal-controls">
+        <div class="control close"></div>
+        <div class="control minimize"></div>
+        <div class="control maximize"></div>
+      </div>
+    </div>
+    <div class="text">Loading...</div>
+  </div>
+
   <div id="erreur">Erreur : Accès non autorisé. Veuillez vous connecter d'abord.</div>
   <div id="messages" style="display:none;"></div>
   <div id="formulaire" style="display:none;">
     <input id="message" placeholder="Ton message..." />
-    <button onclick="envoyer()">Envoyer</button>
+    <div class="container-button" onclick="envoyer()">
+      <div class="hover bt-1"></div>
+      <div class="hover bt-2"></div>
+      <div class="hover bt-3"></div>
+      <div class="hover bt-4"></div>
+      <div class="hover bt-5"></div>
+      <div class="hover bt-6"></div>
+      <button>Envoyer</button>
+    </div>
   </div>
 
   <!-- Firebase -->
@@ -171,7 +340,14 @@
             divMsg.innerHTML = `
               <div class="auteur">${data.nom}</div>
               <div class="contenu">${data.message}</div>
-              ${data.nom === nomUtilisateur ? '<span class="supprimer" onclick="supprimerMessage(\'' + doc.id + '\')">X</span>' : ''}
+              ${data.nom === nomUtilisateur ? `
+                <span class="supprimer">
+                  <button class="button" onclick="supprimerMessage('${doc.id}')">
+                    <svg viewBox="0 0 448 512" class="svgIcon">
+                      <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
+                    </svg>
+                  </button>
+                </span>` : ''}
             `;
             messagesDiv.appendChild(divMsg);
           });
