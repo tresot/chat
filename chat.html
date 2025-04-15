@@ -203,6 +203,49 @@
       font-weight: bold;
       text-transform: uppercase;
     }
+               /* Style pour le bouton supprimer */
+    .delete-button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #ff4d4d;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+   }
+
+   .delete-button:hover {
+      background-color: #ff1a1a;
+      transform: scale(1.1);
+   }
+
+   .delete-button svg {
+      fill: white;
+      width: 12px;
+      height: 12px;
+   }
+
+   .delete-button::before {
+      position: absolute;
+      bottom: -20px;
+      content: "Supprimer";
+      color: white;
+      font-size: 0px;
+      white-space: nowrap;
+    }
+
+    .delete-button:hover::before {
+      font-size: 12px;
+      opacity: 1;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
 
     .input__button__shadow:hover {
       background: #e9b50b;
@@ -661,16 +704,16 @@
             divMsg.classList.add("msg");
             if (data.nom === nomUtilisateur) divMsg.classList.add("self");
             divMsg.innerHTML = `
-              <div class="auteur">${data.nom}</div>
-              <div class="contenu">${data.message}</div>
-              ${data.nom === nomUtilisateur ? `
-                <span class="supprimer">
-                  <button class="button" onclick="supprimerMessage('${doc.id}')">
-                    <svg viewBox="0 0 448 512" class="svgIcon">
-                      <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
-                    </svg>
-                  </button>
-                </span>` : '' }
+               <div class="auteur">${data.nom}</div>
+               <div class="contenu">${data.message}</div>
+               ${data.nom === nomUtilisateur ? `
+                 <span class="supprimer">
+                   <button class="delete-button" onclick="supprimerMessage('${doc.id}')">
+                     <svg viewBox="0 0 448 512" width="12" height="12">
+                       <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
+                      </svg>
+                    </button>
+                  </span>` : '' }
             `;
             messagesDiv.appendChild(divMsg);
           });
