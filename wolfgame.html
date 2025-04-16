@@ -1048,6 +1048,757 @@
         }
 
         // [Les autres fonctions restent similaires mais avec les optimisations appliquées]
+                function showRoleScreen(role) {
+            // Jouer un son spécial pour certains rôles
+            if (role === 'WEREWOLF') {
+                document.getElementById('night-sound').play();
+            }
+            
+            document.getElementById('role-emoji').textContent = ROLES[role].emoji;
+            document.getElementById('role-description').textContent = `Tu es ${ROLES[role].name}\n\n${ROLES[role].description}`;
+            document.querySelector('.role-screen').style.display = 'flex';
+            
+            // Stocker le rôle du joueur
+            currentPlayerRole = role;
+        }
+        
+        // Fonction pour confirmer la vue du rôle
+        function confirmRole() {
+            document.querySelector('.role-screen').style.display = 'none';
+            showGameScreen();
+        }
+        
+        // Fonction pour afficher l'écran de jeu principal
+        function showGameScreen() {
+            document.querySelector('.home-screen').style.display = 'none';
+            document.querySelector('.lobby-screen').style.display = 'none';
+            document.querySelector('.game-screen').style.display = 'block';
+            
+            // Mettre à jour l'interface selon l'état du jeu
+            updateGameInterface();
+            
+            // Configurer l'écouteur des joueurs
+            setupPlayersListener();
+        }
+        
+        // Fonction pour configurer l'écouteur de la partie
+        function setupGameListener() {
+            if (gameUnsubscribe) gameUnsubscribe();
+            if (chatUnsubscribe) chatUnsubscribe();
+            if (nightActionsUnsubscribe) nightActionsUnsubscribe();
+            if (votesUnsubscribe) votesUnsubscribe();
+            
+            gameUnsubscribe = db.collection('games').doc(currentGameId).onSnapshot(async (doc) => {
+                if (!doc.exists) {
+                    showNotification("Cette partie n'existe plus !");
+                    setTimeout(() => window.location.reload(), 2000);
+                    return;
+                }
+                
+                const gameData = doc.data();
+                gameState = gameData;
+                
+                // Mettre à jour la liste des joueurs
+                await updatePlayersList();
+                
+                // Gérer les différents états du jeu
+                switch (gameData.status) {
+                    case GAME_PHASES.LOBBY:
+                        // Mettre à jour les paramètres affichés
+                        if (isGameCreator) {
+                            document.getElementById('allow-spectators').checked = gameData.settings?.allowSpectators || false;
+                            document.getElementById('auto-narrator').checked = gameData.settings?.narratorType !== 'manual';
+                            document.getElementById('manual-narrator').checked = gameData.settings?.narratorType === 'manual';
+                        }
+                        break;
+                        
+                    case GAME_PHASES.ROLE_ASSIGNMENT:
+                        // Attribuer les rôles
+                        await assignRoles(gameData);
+                        break;
+                        
+                    case GAME_PHASES.NIGHT:
+                        // Configurer l'écouteur des actions de nuit
+                        setupNightActionsListener();
+                        
+                        // Jouer les sons appropriés
+                        document.getElementById('night-sound').play();
+                        document.getElementById('day-sound').pause();
+                        
+                        // Afficher l'écran de jeu si ce n'est pas déjà fait
+                        if (document.querySelector('.game-screen').style.display !== 'block') {
+                            showGameScreen();
+                        }
+                        
+                        // Afficher l'écran de rôle si le joueur ne connaît pas encore son rôle
+                        if (currentPlayerRole === "" && players[currentPlayerId]?.role) {
+                            showRoleScreen(players[currentPlayerId].role);
+                        }
+                        
+                        // Mettre à jour l'interface
+                        updateGameInterface();
+                        break;
+                        
+                    case GAME_PHASES.DAY:
+                    case GAME_PHASES.VOTING:
+                        // Configurer l'écouteur des votes
+                        setupVotesListener();
+                        
+                        // Jouer les sons appropriés
+                        document.getElementById('day-sound').play();
+                        document.getElementById('night-sound').pause();
+                        
+                        // Afficher l'écran de jeu si ce n'est pas déjà fait
+                        if (document.querySelector('.game-screen').style.display !== 'block') {
+                            showGameScreen();
+                        }
+                        
+                        // Mettre à jour l'interface
+                        updateGameInterface();
+                        break;
+                        
+                    case GAME_PHASES.END:
+                        // Afficher l'écran de fin
+                        showEndGameScreen();
+                        break;
+                }
+            });
+            
+            // Configurer l'écouteur du chat
+            setupChatListener();
+        }
+        
+        // Fonction pour configurer l'écouteur des actions de nuit
+        function setupNightActionsListener() {
+            if (nightActionsUnsubscribe) nightActionsUnsubscribe();
+            
+            nightActionsUnsubscribe = db.collection('games').doc(currentGameId).collection('nightActions')
+                .onSnapshot(async (snapshot) => {
+                    if (!gameState || gameState.status !== GAME_PHASES.NIGHT) return;
+                    
+                    const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+                    const alivePlayers = playersSnapshot.docs.filter(doc => doc.data().isAlive);
+                    
+                    // Vérifier si toutes les actions nécessaires ont été effectuées
+                    const requiredActions = getRequiredNightActions();
+                    const actions = snapshot.docs.map(doc => doc.data());
+                    
+                    let allActionsCompleted = true;
+                    
+                    for (const role of requiredActions) {
+                        const hasAction = actions.some(action => 
+                            action.action.startsWith(role) && 
+                            alivePlayers.some(player => player.id === action.from)
+                        );
+                        
+                        if (!hasAction) {
+                            allActionsCompleted = false;
+                            break;
+                        }
+                    }
+                    
+                    // Si toutes les actions sont complétées, passer à la phase suivante
+                    if (allActionsCompleted) {
+                        proceedToNextPhase();
+                    }
+                });
+        }
+        
+        // Fonction pour obtenir les actions de nuit requises selon la phase
+        function getRequiredNightActions() {
+            if (!gameState) return [];
+            
+            const required = [];
+            const nightNumber = parseInt(gameState.phase.split('_')[1]);
+            
+            // Cupidon seulement la première nuit
+            if (nightNumber === 1 && gameState.settings.roles.includes('CUPID')) {
+                required.push('cupid');
+            }
+            
+            // Loups-garous chaque nuit
+            if (gameState.settings.roles.includes('WEREWOLF')) {
+                required.push('werewolf');
+            }
+            
+            // Voyante chaque nuit
+            if (gameState.settings.roles.includes('SEER')) {
+                required.push('seer');
+            }
+            
+            // Sorcière chaque nuit
+            if (gameState.settings.roles.includes('WITCH')) {
+                required.push('witch');
+            }
+            
+            return required;
+        }
+        
+        // Fonction pour passer à la phase suivante
+        async function proceedToNextPhase() {
+            if (!gameState) return;
+            
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                // Passer au jour
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.DAY,
+                    phase: `day_${gameState.currentDay}`,
+                    phaseStep: "discussion"
+                });
+                
+                // Annoncer les victimes de la nuit
+                announceNightVictims();
+            } else if (gameState.status === GAME_PHASES.DAY) {
+                // Passer au vote
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.VOTING,
+                    phaseStep: "vote"
+                });
+            } else if (gameState.status === GAME_PHASES.VOTING) {
+                // Compter les votes et éliminer un joueur
+                await processVotes();
+                
+                // Vérifier si la partie est terminée
+                if (await checkGameEnd()) {
+                    return;
+                }
+                
+                // Passer à la nuit suivante
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.NIGHT,
+                    phase: `night_${gameState.currentDay + 1}`,
+                    phaseStep: NIGHT_PHASES.CUPID,
+                    currentDay: gameState.currentDay + 1
+                });
+            }
+        }
+        
+        // Fonction pour annoncer les victimes de la nuit
+        async function announceNightVictims() {
+            // Implémenter la logique pour déterminer qui est mort pendant la nuit
+            // (victime des loups, potion de sorcière, etc.)
+            // Afficher un message dans la narration
+            
+            const narrationBox = document.getElementById('narration-box');
+            if (narrationBox) {
+                narrationBox.innerHTML = "☀️ Le village se réveille... Qui a disparu cette nuit ?";
+            }
+        }
+        
+        // Fonction pour traiter les votes
+        async function processVotes() {
+            const votesSnapshot = await db.collection('games').doc(currentGameId).collection('votes').get();
+            const votes = votesSnapshot.docs.map(doc => doc.data().target);
+            
+            // Compter les votes
+            const voteCount = {};
+            votes.forEach(target => {
+                voteCount[target] = (voteCount[target] || 0) + 1;
+            });
+            
+            // Trouver le joueur avec le plus de votes
+            let maxVotes = 0;
+            let eliminatedPlayer = null;
+            
+            for (const [playerId, count] of Object.entries(voteCount)) {
+                if (count > maxVotes) {
+                    maxVotes = count;
+                    eliminatedPlayer = playerId;
+                }
+            }
+            
+            // Éliminer le joueur
+            if (eliminatedPlayer) {
+                await db.collection('games').doc(currentGameId).collection('players').doc(eliminatedPlayer).update({
+                    isAlive: false
+                });
+                
+                // Si c'est le chasseur, lui permettre de tirer
+                const eliminatedPlayerData = (await db.collection('games').doc(currentGameId).collection('players').doc(eliminatedPlayer).get()).data();
+                if (eliminatedPlayerData.role === 'HUNTER') {
+                    // Implémenter la logique du chasseur
+                }
+            }
+            
+            // Nettoyer les votes
+            const batch = db.batch();
+            votesSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            
+            // Jouer le son de vote
+            document.getElementById('vote-sound').play();
+        }
+        
+        // Fonction pour vérifier si la partie est terminée
+        async function checkGameEnd() {
+            const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+            const alivePlayers = playersSnapshot.docs.filter(doc => doc.data().isAlive);
+            
+            // Vérifier si les amoureux ont gagné
+            const lovers = alivePlayers.filter(doc => {
+                const player = doc.data();
+                return player.loverUid && players[player.loverUid]?.isAlive;
+            });
+            
+            if (lovers.length >= 2 && alivePlayers.length === 2) {
+                // Les amoureux gagnent
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.END,
+                    winners: "lovers"
+                });
+                return true;
+            }
+            
+            // Vérifier si les loups-garous ont gagné
+            const werewolves = alivePlayers.filter(doc => doc.data().role === 'WEREWOLF');
+            const villagers = alivePlayers.filter(doc => doc.data().role !== 'WEREWOLF');
+            
+            if (werewolves.length >= villagers.length) {
+                // Les loups-garous gagnent
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.END,
+                    winners: "werewolves"
+                });
+                return true;
+            }
+            
+            // Vérifier si les villageois ont gagné
+            if (werewolves.length === 0) {
+                // Les villageois gagnent
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.END,
+                    winners: "villagers"
+                });
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Fonction pour configurer l'écouteur des votes
+        function setupVotesListener() {
+            if (votesUnsubscribe) votesUnsubscribe();
+            
+            votesUnsubscribe = db.collection('games').doc(currentGameId).collection('votes')
+                .onSnapshot(async (snapshot) => {
+                    if (!gameState || gameState.status !== GAME_PHASES.VOTING) return;
+                    
+                    const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+                    const alivePlayers = playersSnapshot.docs.filter(doc => doc.data().isAlive);
+                    
+                    // Si tous les joueurs vivants ont voté, procéder
+                    if (snapshot.size >= alivePlayers.length) {
+                        proceedToNextPhase();
+                    }
+                });
+        }
+        
+        // Fonction pour configurer l'écouteur du chat
+        function setupChatListener() {
+            if (chatUnsubscribe) chatUnsubscribe();
+            
+            const chatPath = determineChatPath();
+            if (!chatPath) return;
+            
+            chatUnsubscribe = db.collection('games').doc(currentGameId).collection('chats').doc(chatPath).collection('messages')
+                .orderBy('timestamp', 'asc')
+                .onSnapshot((snapshot) => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    chatMessages.innerHTML = '';
+                    
+                    snapshot.forEach((doc) => {
+                        const message = doc.data();
+                        const messageElement = document.createElement('div');
+                        messageElement.innerHTML = `<strong>${message.from}:</strong> ${message.text}`;
+                        messageElement.style.marginBottom = '5px';
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Faire défiler vers le bas
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+        }
+        
+        // Fonction pour déterminer le chemin du chat selon le rôle et la phase
+        function determineChatPath() {
+            if (!gameState || !currentPlayerRole) return null;
+            
+            // Spectateurs voient toujours le chat des spectateurs
+            if (players[currentPlayerId]?.type === 'spectator') {
+                return 'spectators';
+            }
+            
+            // Joueurs morts voient le chat des spectateurs
+            if (!players[currentPlayerId]?.isAlive) {
+                return 'spectators';
+            }
+            
+            // Pendant la nuit, les loups ont leur propre chat
+            if (gameState.status === GAME_PHASES.NIGHT && currentPlayerRole === 'WEREWOLF') {
+                return 'werewolves';
+            }
+            
+            // Sinon, chat général
+            return 'general';
+        }
+        
+        // Fonction pour envoyer un message de chat
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const message = chatInput.value.trim();
+            
+            if (!message || !currentPlayerName) return;
+            
+            const chatPath = determineChatPath();
+            if (!chatPath) return;
+            
+            try {
+                await db.collection('games').doc(currentGameId).collection('chats').doc(chatPath).collection('messages').add({
+                    from: currentPlayerName,
+                    text: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                chatInput.value = '';
+            } catch (error) {
+                console.error("Erreur lors de l'envoi du message:", error);
+            }
+        }
+        
+        // Fonction pour mettre à jour la liste des joueurs
+        async function updatePlayersList() {
+            const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+            players = {};
+            
+            const playerListElement = document.getElementById('player-list') || document.getElementById('alive-players');
+            if (!playerListElement) return;
+            
+            playerListElement.innerHTML = '';
+            
+            playersSnapshot.forEach((doc) => {
+                const player = doc.data();
+                players[doc.id] = player;
+                
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card pixel-border';
+                
+                // Vérifier si le joueur est en ligne
+                const lastSeen = player.lastSeen ? player.lastSeen.toDate() : new Date();
+                const isOnline = (new Date() - lastSeen) < 20000; // 20 secondes
+                
+                playerCard.innerHTML = `
+                    <div style="font-size: 2rem;">${player.role ? ROLES[player.role]?.emoji || '👤' : '👤'}</div>
+                    <div>${player.pseudo}</div>
+                    ${!player.isAlive ? '<div style="color: red;">☠️</div>' : ''}
+                    ${!isOnline ? '<div style="color: gray;">💤</div>' : ''}
+                `;
+                
+                playerListElement.appendChild(playerCard);
+            });
+        }
+        
+        // Fonction pour mettre à jour l'interface du jeu
+        function updateGameInterface() {
+            if (!gameState || !currentPlayerRole) return;
+            
+            // Mettre à jour la phase affichée
+            document.getElementById('game-phase').textContent = getPhaseDisplayName(gameState.phase);
+            
+            // Mettre à jour la narration
+            updateNarration();
+            
+            // Mettre à jour les actions disponibles
+            updateActionButtons();
+            
+            // Mettre à jour le thème jour/nuit
+            updateDayNightTheme();
+        }
+        
+        // Fonction pour obtenir le nom affichable de la phase
+        function getPhaseDisplayName(phase) {
+            if (!phase) return "";
+            
+            if (phase.startsWith('night')) {
+                const nightNumber = phase.split('_')[1];
+                return `🌙 Nuit ${nightNumber}`;
+            } else if (phase.startsWith('day')) {
+                const dayNumber = phase.split('_')[1];
+                return `☀️ Jour ${dayNumber}`;
+            }
+            
+            return phase;
+        }
+        
+        // Fonction pour mettre à jour la narration
+        function updateNarration() {
+            const narrationBox = document.getElementById('narration-box');
+            if (!narrationBox) return;
+            
+            let narrationText = "";
+            
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                if (currentPlayerRole === 'WEREWOLF') {
+                    narrationText = "Les Loups-Garous se réveillent... Choisissez une victime !";
+                } else if (currentPlayerRole === 'SEER') {
+                    narrationText = "La Voyante se réveille... Choisissez un joueur dont vous voulez connaître le rôle.";
+                } else if (currentPlayerRole === 'WITCH') {
+                    narrationText = "La Sorcière se réveille... Voulez-vous utiliser une potion ?";
+                } else if (currentPlayerRole === 'CUPID' && gameState.phase === 'night_1') {
+                    narrationText = "Cupidon se réveille... Choisissez deux amoureux.";
+                } else {
+                    narrationText = "🌙 Vous dormez profondément...";
+                }
+            } else if (gameState.status === GAME_PHASES.DAY) {
+                narrationText = "☀️ Le village se réveille. Discutez pour trouver les Loups-Garous !";
+            } else if (gameState.status === GAME_PHASES.VOTING) {
+                narrationText = "🗳️ C'est l'heure de voter ! Choisissez qui éliminer.";
+            }
+            
+            narrationBox.innerHTML = narrationText;
+        }
+        
+        // Fonction pour mettre à jour les boutons d'action
+        function updateActionButtons() {
+            const actionButtons = document.getElementById('action-buttons');
+            if (!actionButtons) return;
+            
+            actionButtons.innerHTML = '';
+            
+            if (!players[currentPlayerId]?.isAlive) {
+                // Joueur mort - pas d'actions
+                return;
+            }
+            
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                // Actions de nuit selon le rôle
+                if (currentPlayerRole === 'WEREWOLF') {
+                    // Afficher les joueurs vivants non loups
+                    Object.entries(players).forEach(([id, player]) => {
+                        if (player.isAlive && player.role !== 'WEREWOLF') {
+                            const btn = document.createElement('button');
+                            btn.className = 'pixel-button';
+                            btn.textContent = `Voter pour ${player.pseudo}`;
+                            btn.onclick = () => submitNightAction('werewolf_vote', id);
+                            actionButtons.appendChild(btn);
+                        }
+                    });
+                } else if (currentPlayerRole === 'SEER') {
+                    // Afficher les joueurs à espionner
+                    Object.entries(players).forEach(([id, player]) => {
+                        if (player.isAlive && id !== currentPlayerId) {
+                            const btn = document.createElement('button');
+                            btn.className = 'pixel-button';
+                            btn.textContent = `Voir ${player.pseudo}`;
+                            btn.onclick = () => submitNightAction('seer_peek', id);
+                            actionButtons.appendChild(btn);
+                        }
+                    });
+                } else if (currentPlayerRole === 'WITCH') {
+                    // Afficher les options de potions
+                    const btnHeal = document.createElement('button');
+                    btnHeal.className = 'pixel-button';
+                    btnHeal.textContent = 'Utiliser potion de vie';
+                    btnHeal.onclick = () => submitNightAction('witch_heal', '');
+                    actionButtons.appendChild(btnHeal);
+                    
+                    const btnKill = document.createElement('button');
+                    btnKill.className = 'pixel-button';
+                    btnKill.textContent = 'Utiliser potion de mort';
+                    btnKill.onclick = () => submitNightAction('witch_kill', '');
+                    actionButtons.appendChild(btnKill);
+                } else if (currentPlayerRole === 'CUPID' && gameState.phase === 'night_1') {
+                    // Afficher les joueurs pour Cupidon
+                    const alivePlayers = Object.entries(players).filter(([id, player]) => player.isAlive && id !== currentPlayerId);
+                    
+                    if (alivePlayers.length >= 2) {
+                        const select1 = document.createElement('select');
+                        select1.className = 'pixel-input';
+                        
+                        const select2 = document.createElement('select');
+                        select2.className = 'pixel-input';
+                        
+                        alivePlayers.forEach(([id, player]) => {
+                            const option1 = document.createElement('option');
+                            option1.value = id;
+                            option1.textContent = player.pseudo;
+                            select1.appendChild(option1);
+                            
+                            const option2 = document.createElement('option');
+                            option2.value = id;
+                            option2.textContent = player.pseudo;
+                            select2.appendChild(option2);
+                        });
+                        
+                        const btn = document.createElement('button');
+                        btn.className = 'pixel-button';
+                        btn.textContent = 'Lier ces deux joueurs';
+                        btn.onclick = () => submitNightAction('cupid_match', [select1.value, select2.value]);
+                        
+                        actionButtons.appendChild(select1);
+                        actionButtons.appendChild(select2);
+                        actionButtons.appendChild(btn);
+                    }
+                }
+            } else if (gameState.status === GAME_PHASES.VOTING) {
+                // Afficher les joueurs pour le vote
+                Object.entries(players).forEach(([id, player]) => {
+                    if (player.isAlive && id !== currentPlayerId) {
+                        const btn = document.createElement('button');
+                        btn.className = 'pixel-button';
+                        btn.textContent = `Voter contre ${player.pseudo}`;
+                        btn.onclick = () => submitVote(id);
+                        actionButtons.appendChild(btn);
+                    }
+                });
+            }
+        }
+        
+        // Fonction pour soumettre une action de nuit
+        async function submitNightAction(actionType, target) {
+            try {
+                await db.collection('games').doc(currentGameId).collection('nightActions').doc(currentPlayerId).set({
+                    action: actionType,
+                    target: target,
+                    from: currentPlayerId,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Erreur lors de la soumission de l'action:", error);
+            }
+        }
+        
+        // Fonction pour soumettre un vote
+        async function submitVote(targetPlayerId) {
+            try {
+                await db.collection('games').doc(currentGameId).collection('votes').doc(currentPlayerId).set({
+                    target: targetPlayerId,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Jouer le son de vote
+                document.getElementById('vote-sound').play();
+            } catch (error) {
+                console.error("Erreur lors de la soumission du vote:", error);
+            }
+        }
+        
+        // Fonction pour mettre à jour le thème jour/nuit
+        function updateDayNightTheme() {
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                document.body.classList.add('night-mode');
+            } else {
+                document.body.classList.remove('night-mode');
+            }
+        }
+        
+        // Fonction pour afficher l'écran de fin de partie
+        function showEndGameScreen() {
+            const winners = determineWinners();
+            
+            const narrationBox = document.getElementById('narration-box');
+            if (narrationBox) {
+                narrationBox.innerHTML = `
+                    <h2>Partie terminée !</h2>
+                    <p>Les ${winners.team} ont gagné !</p>
+                    <p>${winners.message}</p>
+                    <div style="margin-top: 20px;">
+                        ${winners.players.map(p => `<div>${p.pseudo} (${ROLES[p.role]?.name || 'Inconnu'})</div>`).join('')}
+                    </div>
+                `;
+            }
+            
+            // Afficher un bouton pour rejouer
+            const actionButtons = document.getElementById('action-buttons');
+            if (actionButtons) {
+                actionButtons.innerHTML = '';
+                
+                if (isGameCreator) {
+                    const btn = document.createElement('button');
+                    btn.className = 'pixel-button';
+                    btn.textContent = 'Rejouer avec le même groupe';
+                    btn.onclick = restartGame;
+                    actionButtons.appendChild(btn);
+                }
+                
+                const btnLeave = document.createElement('button');
+                btnLeave.className = 'pixel-button';
+                btnLeave.textContent = 'Quitter la partie';
+                btnLeave.onclick = leaveGame;
+                actionButtons.appendChild(btnLeave);
+            }
+        }
+        
+        // Fonction pour déterminer les gagnants
+        function determineWinners() {
+            // Logique simplifiée - à compléter selon les règles exactes
+            const alivePlayers = Object.values(players).filter(p => p.isAlive);
+            
+            // Vérifier si les amoureux ont gagné
+            const lovers = alivePlayers.filter(p => p.loverUid && players[p.loverUid]?.isAlive);
+            if (lovers.length >= 2 && alivePlayers.length === 2) {
+                return {
+                    team: "Amoureux",
+                    message: "Les amoureux survivent seuls et remportent la partie !",
+                    players: lovers
+                };
+            }
+            
+            // Vérifier si les loups-garous ont gagné
+            const werewolves = alivePlayers.filter(p => p.role === 'WEREWOLF');
+            const villagers = alivePlayers.filter(p => p.role !== 'WEREWOLF');
+            
+            if (werewolves.length >= villagers.length) {
+                return {
+                    team: "Loups-Garous",
+                    message: "Les loups-garous ont éliminé tous les villageois !",
+                    players: werewolves
+                };
+            } else {
+                return {
+                    team: "Villageois",
+                    message: "Les villageois ont éliminé tous les loups-garous !",
+                    players: villagers
+                };
+            }
+        }
+        
+        // Fonction pour redémarrer une partie
+        async function restartGame() {
+            if (!isGameCreator) return;
+            
+            try {
+                // Réinitialiser la partie
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.ROLE_ASSIGNMENT,
+                    phase: "night_1",
+                    phaseStep: NIGHT_PHASES.CUPID,
+                    currentDay: 1
+                });
+                
+                // Réinitialiser les joueurs
+                const batch = db.batch();
+                const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+                
+                playersSnapshot.forEach(doc => {
+                    const ref = db.collection('games').doc(currentGameId).collection('players').doc(doc.id);
+                    batch.update(ref, {
+                        role: "",
+                        isAlive: true,
+                        loverUid: null
+                    });
+                });
+                
+                await batch.commit();
+                
+                // Supprimer les anciens messages et actions
+                await clearGameData();
+                
+            } catch (error) {
+                console.error("Erreur lors du redémarrage de la partie:", error);
+            }
+        }
         // ... (showRoleScreen, confirmRole, showGameScreen, etc.)
 
         // Fonction pour quitter proprement
