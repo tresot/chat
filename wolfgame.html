@@ -20,15 +20,16 @@
             color: #e6e6e6;
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: url('https://img.freepik.com/premium-ai-image/pixel-art-game-assets-stardew-valley-style_57403268.htm');
-            background-size: 200px;
+            background-image: url('https://img.freepik.com/free-vector/pixel-art-rural-landscape-background_52683-87941.jpg');
+            background-size: cover;
+            background-attachment: fixed;
         }
         
         /* Animation de feu de camp */
         @keyframes campfire {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
+            0% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.8; transform: scale(1); }
         }
         
         .campfire {
@@ -37,12 +38,13 @@
             right: 20px;
             width: 100px;
             height: 100px;
-            background-image: url('https://img.freepik.com/premium-vector/camp-fire-pixel-art_89950359.htm');
+            background-image: url('https://www.pikpng.com/pngl/m/430-4309657_pixel-campfire-pixel-art-bonfire-clipart.png');
             background-size: contain;
             background-repeat: no-repeat;
             animation: campfire 2s infinite;
             z-index: 1;
             pointer-events: none;
+            filter: drop-shadow(0 0 10px #ff6b00);
         }
         
         /* Étoiles scintillantes */
@@ -190,14 +192,14 @@
             right: 20px;
             width: 60px;
             height: 60px;
-            background-image: url('https://dinopixel.com/sun-and-moon-pixel-art-37348');
+            background-image: url('https://www.pikpng.com/pngl/m/430-4309657_pixel-campfire-pixel-art-bonfire-clipart.png');
             background-size: contain;
             z-index: 10;
             transition: transform 1s;
         }
         
         .night-mode .sun-moon {
-            background-image: url('https://wallpapersden.com/pixelart-night-landscape-wallpaper/2560x1440/');
+            background-image: url('https://www.pikpng.com/pngl/m/430-4309657_pixel-campfire-pixel-art-bonfire-clipart.png');
             transform: rotate(180deg);
         }
         
@@ -384,6 +386,25 @@
             animation: fadeIn 1s ease-in;
         }
         
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4a752c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .game-title {
@@ -517,6 +538,15 @@
     <audio id="day-sound">
         <source src="https://assets.codepen.io/21542/birds-chirping.mp3" type="audio/mpeg">
     </audio>
+    <audio id="join-sound">
+        <source src="https://assets.codepen.io/21542/door-open.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="leave-sound">
+        <source src="https://assets.codepen.io/21542/door-close.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="vote-sound">
+        <source src="https://assets.codepen.io/21542/click-sound.mp3" type="audio/mpeg">
+    </audio>
     
     <!-- Firebase et scripts du jeu -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -557,6 +587,7 @@
         let chatUnsubscribe = null;
         let nightActionsUnsubscribe = null;
         let votesUnsubscribe = null;
+        let playersUnsubscribe = null;
         
         // Rôles disponibles
         const ROLES = {
@@ -612,7 +643,7 @@
         async function createGame() {
             const playerName = document.getElementById('player-name').value.trim();
             if (!playerName) {
-                alert("Choisis un pseudo !");
+                showNotification("Choisis un pseudo !");
                 return;
             }
             
@@ -639,7 +670,8 @@
                     },
                     phase: "night_1",
                     phaseStep: NIGHT_PHASES.CUPID,
-                    currentDay: 1
+                    currentDay: 1,
+                    creatorId: currentPlayerId
                 });
                 
                 // Ajouter le joueur à la partie
@@ -649,7 +681,8 @@
                     isAlive: true,
                     type: "player",
                     score: 0,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // Afficher le lobby
@@ -658,9 +691,12 @@
                 // Écouter les changements de la partie
                 setupGameListener();
                 
+                // Jouer le son d'arrivée
+                document.getElementById('join-sound').play();
+                
             } catch (error) {
                 console.error("Erreur lors de la création de la partie:", error);
-                alert("Une erreur est survenue lors de la création de la partie. Vérifie ta connexion internet.");
+                showNotification("Erreur lors de la création de la partie. Vérifie ta connexion.");
             }
         }
         
@@ -670,12 +706,12 @@
             const gameId = document.getElementById('game-id').value.trim().toUpperCase();
             
             if (!playerName) {
-                alert("Choisis un pseudo !");
+                showNotification("Choisis un pseudo !");
                 return;
             }
             
             if (!gameId) {
-                alert("Entre le code de la partie !");
+                showNotification("Entre le code de la partie !");
                 return;
             }
             
@@ -688,7 +724,13 @@
                 // Vérifier si la partie existe
                 const gameDoc = await db.collection('games').doc(gameId).get();
                 if (!gameDoc.exists) {
-                    alert("Aucune partie trouvée avec ce code !");
+                    showNotification("Aucune partie trouvée avec ce code !");
+                    return;
+                }
+                
+                // Vérifier si la partie a déjà commencé
+                if (gameDoc.data().status !== GAME_PHASES.LOBBY) {
+                    showNotification("Cette partie a déjà commencé !");
                     return;
                 }
                 
@@ -696,15 +738,27 @@
                 await auth.signInAnonymously();
                 currentPlayerId = auth.currentUser.uid;
                 
-                // Rejoindre la partie
-                await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
-                    pseudo: currentPlayerName,
-                    role: "",
-                    isAlive: true,
-                    type: "player",
-                    score: 0,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                // Vérifier si le joueur est déjà dans la partie
+                const playerDoc = await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).get();
+                
+                if (!playerDoc.exists) {
+                    // Rejoindre la partie
+                    await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
+                        pseudo: currentPlayerName,
+                        role: "",
+                        isAlive: true,
+                        type: "player",
+                        score: 0,
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Mettre à jour le pseudo et lastSeen
+                    await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).update({
+                        pseudo: currentPlayerName,
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
                 
                 // Afficher le lobby
                 showLobbyScreen();
@@ -712,9 +766,12 @@
                 // Écouter les changements de la partie
                 setupGameListener();
                 
+                // Jouer le son d'arrivée
+                document.getElementById('join-sound').play();
+                
             } catch (error) {
                 console.error("Erreur lors de la connexion à la partie:", error);
-                alert("Une erreur est survenue lors de la connexion à la partie. Vérifie ta connexion internet.");
+                showNotification("Erreur lors de la connexion. Vérifie ta connexion.");
             }
         }
         
@@ -749,15 +806,22 @@
                                 isAlive: true,
                                 type: "player",
                                 score: 0,
-                                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                             });
                         } else {
-                            // Mettre à jour le pseudo au cas où il a changé
+                            // Mettre à jour le pseudo et lastSeen
                             await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).update({
-                                pseudo: currentPlayerName
+                                pseudo: currentPlayerName,
+                                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                             });
                             
                             currentPlayerRole = playerDoc.data().role;
+                        }
+                        
+                        // Vérifier si le joueur est le créateur
+                        if (gameDoc.data().creatorId === currentPlayerId) {
+                            isGameCreator = true;
                         }
                         
                         // Afficher l'écran approprié
@@ -820,6 +884,82 @@
                 document.getElementById('game-settings').style.display = 'none';
                 document.getElementById('start-game-btn').disabled = true;
             }
+            
+            // Configurer l'écouteur des joueurs
+            setupPlayersListener();
+        }
+        
+        // Fonction pour configurer l'écouteur des joueurs
+        function setupPlayersListener() {
+            if (playersUnsubscribe) playersUnsubscribe();
+            
+            playersUnsubscribe = db.collection('games').doc(currentGameId).collection('players')
+                .onSnapshot(async (snapshot) => {
+                    players = {};
+                    const now = new Date();
+                    
+                    // Mettre à jour la présence des joueurs
+                    const batch = db.batch();
+                    snapshot.forEach(doc => {
+                        const player = doc.data();
+                        players[doc.id] = player;
+                        
+                        // Si c'est le joueur actuel, mettre à jour lastSeen
+                        if (doc.id === currentPlayerId) {
+                            batch.update(doc.ref, {
+                                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                    });
+                    
+                    try {
+                        await batch.commit();
+                    } catch (error) {
+                        console.error("Erreur lors de la mise à jour des joueurs:", error);
+                    }
+                    
+                    // Mettre à jour l'affichage des joueurs
+                    updatePlayersDisplay();
+                    
+                    // Vérifier les joueurs qui viennent de rejoindre ou de partir
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            if (change.doc.id !== currentPlayerId) {
+                                showNotification(`${change.doc.data().pseudo} a rejoint la partie !`);
+                                document.getElementById('join-sound').play();
+                            }
+                        } else if (change.type === 'removed') {
+                            showNotification(`${change.doc.data().pseudo} a quitté la partie.`);
+                            document.getElementById('leave-sound').play();
+                        }
+                    });
+                });
+        }
+        
+        // Fonction pour mettre à jour l'affichage des joueurs
+        function updatePlayersDisplay() {
+            const playerListElement = document.getElementById('player-list') || document.getElementById('alive-players');
+            if (!playerListElement) return;
+            
+            playerListElement.innerHTML = '';
+            
+            Object.entries(players).forEach(([id, player]) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card pixel-border';
+                
+                // Vérifier si le joueur est en ligne (vu il y a moins de 10 secondes)
+                const lastSeen = player.lastSeen ? player.lastSeen.toDate() : new Date();
+                const isOnline = (new Date() - lastSeen) < 20000; // 20 secondes
+                
+                playerCard.innerHTML = `
+                    <div style="font-size: 2rem;">${player.role ? ROLES[player.role]?.emoji || '👤' : '👤'}</div>
+                    <div>${player.pseudo}</div>
+                    ${!player.isAlive ? '<div style="color: red;">☠️</div>' : ''}
+                    ${!isOnline ? '<div style="color: gray;">💤</div>' : ''}
+                `;
+                
+                playerListElement.appendChild(playerCard);
+            });
         }
         
         // Fonction pour démarrer le jeu
@@ -833,14 +973,14 @@
             });
             
             if (selectedRoles.length === 0) {
-                alert("Sélectionne au moins un rôle !");
+                showNotification("Sélectionne au moins un rôle !");
                 return;
             }
             
             // Vérifier le nombre minimum de joueurs
             const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
             if (playersSnapshot.size < 4) {
-                alert("Il faut au moins 4 joueurs pour commencer une partie !");
+                showNotification("Il faut au moins 4 joueurs pour commencer !");
                 return;
             }
             
@@ -937,6 +1077,9 @@
             
             // Mettre à jour l'interface selon l'état du jeu
             updateGameInterface();
+            
+            // Configurer l'écouteur des joueurs
+            setupPlayersListener();
         }
         
         // Fonction pour configurer l'écouteur de la partie
@@ -948,8 +1091,8 @@
             
             gameUnsubscribe = db.collection('games').doc(currentGameId).onSnapshot(async (doc) => {
                 if (!doc.exists) {
-                    alert("Cette partie n'existe plus !");
-                    window.location.reload();
+                    showNotification("Cette partie n'existe plus !");
+                    setTimeout(() => window.location.reload(), 2000);
                     return;
                 }
                 
@@ -1136,6 +1279,11 @@
             // Implémenter la logique pour déterminer qui est mort pendant la nuit
             // (victime des loups, potion de sorcière, etc.)
             // Afficher un message dans la narration
+            
+            const narrationBox = document.getElementById('narration-box');
+            if (narrationBox) {
+                narrationBox.innerHTML = "☀️ Le village se réveille... Qui a disparu cette nuit ?";
+            }
         }
         
         // Fonction pour traiter les votes
@@ -1179,6 +1327,9 @@
                 batch.delete(doc.ref);
             });
             await batch.commit();
+            
+            // Jouer le son de vote
+            document.getElementById('vote-sound').play();
         }
         
         // Fonction pour vérifier si la partie est terminée
@@ -1333,10 +1484,16 @@
                 
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card pixel-border';
+                
+                // Vérifier si le joueur est en ligne
+                const lastSeen = player.lastSeen ? player.lastSeen.toDate() : new Date();
+                const isOnline = (new Date() - lastSeen) < 20000; // 20 secondes
+                
                 playerCard.innerHTML = `
                     <div style="font-size: 2rem;">${player.role ? ROLES[player.role]?.emoji || '👤' : '👤'}</div>
                     <div>${player.pseudo}</div>
                     ${!player.isAlive ? '<div style="color: red;">☠️</div>' : ''}
+                    ${!isOnline ? '<div style="color: gray;">💤</div>' : ''}
                 `;
                 
                 playerListElement.appendChild(playerCard);
@@ -1520,6 +1677,9 @@
                     target: targetPlayerId,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
+                // Jouer le son de vote
+                document.getElementById('vote-sound').play();
             } catch (error) {
                 console.error("Erreur lors de la soumission du vote:", error);
             }
@@ -1692,6 +1852,19 @@
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
+        }
+        
+        // Fonction pour afficher une notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
         }
     </script>
 </body>
