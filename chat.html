@@ -4,34 +4,91 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat entre amis</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* ANIMATION DU BACKGROUND */
-    @keyframes gradient {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+    /* VARIABLES THEMES */
+    :root {
+      --primary-bg: linear-gradient(145deg, #e0e7ff, #f9fafb);
+      --secondary-bg: #eef2ff;
+      --message-bg: #ffffff;
+      --message-self-bg: linear-gradient(145deg, #3b82f6, #60a5fa);
+      --text-color: #000;
+      --author-color: #555;
+      --form-bg: #dbeafe;
+      --border-color: #000;
+      --shadow-color: rgba(0,0,0,0.8);
+      --button-bg: #e9b50b;
+      --delete-bg: #ff4d4d;
+      --theme-name: "Comic";
     }
 
+    /* THEME ANIMAL CROSSING */
+    .theme-animal-crossing {
+      --primary-bg: linear-gradient(145deg, #a8e6cf, #dcedc1);
+      --secondary-bg: #ffd3b6;
+      --message-bg: #ffaaa5;
+      --message-self-bg: linear-gradient(145deg, #ff8b94, #ffaaa5);
+      --text-color: #5c4d4d;
+      --author-color: #7e6b6b;
+      --form-bg: #dcedc1;
+      --border-color: #5c4d4d;
+      --shadow-color: rgba(92, 77, 77, 0.8);
+      --button-bg: #a8e6cf;
+      --delete-bg: #ff8b94;
+      --theme-name: "Animal Crossing";
+    }
+
+    /* THEME STARDEW VALLEY */
+    .theme-stardew {
+      --primary-bg: linear-gradient(145deg, #e4f5e4, #f5f5e4);
+      --secondary-bg: #e4e4f5;
+      --message-bg: #f5e4e4;
+      --message-self-bg: linear-gradient(145deg, #8a9c5a, #b5c97d);
+      --text-color: #4a3a2a;
+      --author-color: #6a5a4a;
+      --form-bg: #d4d4e5;
+      --border-color: #4a3a2a;
+      --shadow-color: rgba(74, 58, 42, 0.8);
+      --button-bg: #8a9c5a;
+      --delete-bg: #c97d7d;
+      --theme-name: "Stardew Valley";
+    }
+
+    /* THEME NEON FUTURISTE */
+    .theme-neon {
+      --primary-bg: linear-gradient(145deg, #0f0c29, #302b63);
+      --secondary-bg: #24243e;
+      --message-bg: #1a1a2e;
+      --message-self-bg: linear-gradient(145deg, #00dbde, #fc00ff);
+      --text-color: #fff;
+      --author-color: #ccc;
+      --form-bg: #16213e;
+      --border-color: #00dbde;
+      --shadow-color: rgba(0, 219, 222, 0.8);
+      --button-bg: #fc00ff;
+      --delete-bg: #ff0a54;
+      --theme-name: "Neon Futuriste";
+    }
+
+    /* ANIMATION DU BACKGROUND */
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* BASE STYLES */
     body {
       font-family: 'Comic Sans MS', 'Comic Neue', 'Segoe UI', sans-serif;
-      background: linear-gradient(145deg, #e0e7ff, #f9fafb);
+      background: var(--primary-bg);
       background-size: 400% 400%;
       animation: gradient 15s ease infinite;
       margin: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
-      transition: background 0.5s ease;
-    }
-
-    body.dark-mode {
-      background: linear-gradient(145deg, #1a1a2e, #16213e);
+      transition: all 0.5s ease;
+      color: var(--text-color);
     }
 
     #messages {
@@ -41,98 +98,75 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      background: #eef2ff;
-      transition: background 0.5s ease;
-      border: 3px solid #000;
-      background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
+      background: var(--secondary-bg);
+      transition: all 0.5s ease;
+      border: 3px solid var(--border-color);
+      background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
       background-size: 20px 20px;
     }
 
-    body.dark-mode #messages {
-      background: #1e293b;
-      background-image: radial-gradient(circle, #334155 1px, transparent 1px);
-    }
-
     .msg {
-      background: #ffffff;
+      background: var(--message-bg);
       border-radius: 8px;
       padding: 0.8rem 1.2rem;
       max-width: 75%;
       position: relative;
-      box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
-      border: 2px solid #000;
-      transition: transform 0.2s ease, box-shadow 0.2s, background 0.5s ease;
+      box-shadow: 4px 4px 0px 0px var(--shadow-color);
+      border: 2px solid var(--border-color);
+      transition: all 0.2s ease;
       font-weight: bold;
       line-height: 1.4;
-    }
-
-    body.dark-mode .msg {
-      background: #334155;
-      color: white;
+      color: var(--text-color);
     }
 
     .msg:hover {
       transform: translateY(-2px);
-      box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8);
+      box-shadow: 6px 6px 0px 0px var(--shadow-color);
     }
 
     .msg.self {
       align-self: flex-end;
-      background: linear-gradient(145deg, #3b82f6, #60a5fa);
+      background: var(--message-self-bg);
       color: white;
-      border: 2px solid #000;
+      border: 2px solid var(--border-color);
     }
 
     .msg.self .auteur {
       color: #dbeafe;
-      text-shadow: 1px 1px 0px #000;
+      text-shadow: 1px 1px 0px var(--border-color);
     }
 
     .auteur {
       font-size: 0.7rem;
-      color: #555;
+      color: var(--author-color);
       margin-bottom: 0.3rem;
-      transition: color 0.5s ease;
+      transition: all 0.5s ease;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
-    body.dark-mode .auteur {
-      color: #ccc;
-    }
-
     .contenu {
       font-size: 1rem;
       word-wrap: break-word;
-      transition: color 0.5s ease;
+      transition: all 0.5s ease;
     }
 
-    body.dark-mode .contenu {
-      color: white;
-    }
-
-    .supprimer {
-      position: absolute;
-      top: 4px;
-      right: 8px;
+    .contenu a {
+      color: inherit;
+      text-decoration: underline;
     }
 
     /* CONTENEUR DU FORMULAIRE */
     #formulaire {
       display: flex;
       padding: 1rem;
-      background: #dbeafe;
-      border-top: 3px solid #000;
+      background: var(--form-bg);
+      border-top: 3px solid var(--border-color);
       gap: 1rem;
       align-items: center;
       justify-content: center;
-      transition: background 0.5s ease, border-color 0.5s ease;
-    }
-
-    body.dark-mode #formulaire {
-      background: #1e293b;
-      border-color: #000;
+      transition: all 0.5s ease;
     }
 
     #erreur {
@@ -141,28 +175,28 @@
       padding: 1rem;
       text-align: center;
       display: none;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
       font-weight: bold;
-      box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
+      box-shadow: 4px 4px 0px 0px var(--shadow-color);
     }
 
-    /* CHAMP DE SAISIE & CONTAINER (Uiverse.io par 0xnihilism) */
+    /* CHAMP DE SAISIE */
     .input__container {
       position: relative;
-      background: #f0f0f0;
+      background: rgba(255,255,255,0.3);
       padding: 20px;
       display: flex;
       justify-content: flex-start;
       align-items: center;
       gap: 15px;
-      border: 4px solid #000;
+      border: 4px solid var(--border-color);
       width: 90%;
       max-width: 600px;
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       transform-style: preserve-3d;
       transform: rotateX(10deg) rotateY(-10deg);
       perspective: 1000px;
-      box-shadow: 10px 10px 0 #000;
+      box-shadow: 10px 10px 0 var(--border-color);
       animation: slideInRight 0.5s ease-out;
     }
 
@@ -180,18 +214,14 @@
       bottom: 0;
       z-index: -1;
       transform: translateZ(-50px);
-      background: linear-gradient(
-        45deg,
-        rgba(255, 107, 107, 0.4) 0%,
-        rgba(255, 107, 107, 0.1) 100%
-      );
+      background: linear-gradient(45deg, rgba(255, 107, 107, 0.4) 0%, rgba(255, 107, 107, 0.1) 100%);
       filter: blur(20px);
     }
 
     .input__button__shadow {
       cursor: pointer;
-      border: 3px solid #000;
-      background: #e9b50b;
+      border: 3px solid var(--border-color);
+      background: var(--button-bg);
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       display: flex;
       justify-content: center;
@@ -203,58 +233,15 @@
       font-weight: bold;
       text-transform: uppercase;
     }
-               /* Style pour le bouton supprimer */
-    .delete-button {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background-color: #ff4d4d;
-      border: 2px solid #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-   }
-
-   .delete-button:hover {
-      background-color: #ff1a1a;
-      transform: scale(1.1);
-   }
-
-   .delete-button svg {
-      fill: white;
-      width: 12px;
-      height: 12px;
-   }
-
-   .delete-button::before {
-      position: absolute;
-      bottom: -20px;
-      content: "Supprimer";
-      color: white;
-      font-size: 0px;
-      white-space: nowrap;
-    }
-
-    .delete-button:hover::before {
-      font-size: 12px;
-      opacity: 1;
-      bottom: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
 
     .input__button__shadow:hover {
-      background: #e9b50b;
+      background: var(--button-bg);
       transform: translateZ(10px) translateX(-5px) translateY(-5px);
-      box-shadow: 5px 5px 0 0 #000;
+      box-shadow: 5px 5px 0 0 var(--border-color);
     }
 
     .input__button__shadow svg {
-      fill: #000;
+      fill: var(--border-color);
       width: 25px;
       height: 25px;
     }
@@ -262,11 +249,11 @@
     .input__search {
       width: 100%;
       outline: none;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
       padding: 15px;
       font-size: 18px;
-      background: #fff;
-      color: #000;
+      background: rgba(255,255,255,0.8);
+      color: var(--text-color);
       transform: translateZ(10px);
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       position: relative;
@@ -277,16 +264,16 @@
     }
 
     .input__search::placeholder {
-      color: #666;
+      color: var(--author-color);
       font-weight: bold;
       text-transform: uppercase;
     }
 
     .input__search:hover,
     .input__search:focus {
-      background: #f0f0f0;
+      background: rgba(255,255,255,0.9);
       transform: translateZ(20px) translateX(-5px) translateY(-5px);
-      box-shadow: 5px 5px 0 0 #000;
+      box-shadow: 5px 5px 0 0 var(--border-color);
     }
 
     .input__container::before {
@@ -294,23 +281,23 @@
       position: absolute;
       top: -15px;
       left: 20px;
-      background: #e9b50b;
-      color: #000;
+      background: var(--button-bg);
+      color: var(--text-color);
       font-weight: bold;
       padding: 5px 10px;
       font-size: 14px;
       transform: translateZ(50px);
       z-index: 4;
-      border: 2px solid #000;
-      box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
+      border: 2px solid var(--border-color);
+      box-shadow: 3px 3px 0px 0px var(--shadow-color);
     }
 
-    /* NOUVEAU BOUTON ENVOYER (From Uiverse.io by vinodjangid07) */
+    /* BOUTON ENVOYER */
     .button {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background-color: rgb(20, 20, 20);
+      background-color: var(--border-color);
       border: none;
       font-weight: 600;
       display: flex;
@@ -322,7 +309,7 @@
       overflow: hidden;
       position: relative;
       animation: slideInRight 0.5s ease-out;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
     }
 
     .svgIcon {
@@ -338,7 +325,7 @@
       width: 140px;
       border-radius: 50px;
       transition-duration: 0.3s;
-      background-color: rgb(181, 160, 255);
+      background-color: var(--button-bg);
       align-items: center;
     }
 
@@ -362,7 +349,217 @@
       transition-duration: 0.3s;
     }
 
-    /* From Uiverse.io by 3bdel3ziz-T */
+    /* BOUTON SUPPRIMER */
+    .delete-button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--delete-bg);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .delete-button:hover {
+      background-color: #ff1a1a;
+      transform: scale(1.1);
+    }
+
+    .delete-button svg {
+      fill: white;
+      width: 12px;
+      height: 12px;
+    }
+
+    .delete-button::before {
+      position: absolute;
+      bottom: -20px;
+      content: "Supprimer";
+      color: white;
+      font-size: 0px;
+      white-space: nowrap;
+    }
+
+    .delete-button:hover::before {
+      font-size: 12px;
+      opacity: 1;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* THEME SWITCHER */
+    .theme-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .theme-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 3px 3px 0 0 var(--shadow-color);
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-btn.active {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px 5px rgba(255,255,255,0.5);
+    }
+
+    /* LOADING ANIMATION */
+    .loader {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loader-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      border: 3px solid var(--border-color);
+      box-shadow: 5px 5px 0 var(--shadow-color);
+      text-align: center;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--button-bg);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* REACTIONS */
+    .reactions {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .reaction-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+
+    .reaction-btn:hover {
+      transform: scale(1.2);
+    }
+
+    /* MESSAGE INFO */
+    .message-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      margin-top: 5px;
+      color: var(--author-color);
+    }
+
+    /* THEME INDICATOR */
+    .theme-indicator {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: var(--button-bg);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      border: 2px solid var(--border-color);
+      box-shadow: 3px 3px 0 var(--shadow-color);
+      z-index: 1000;
+    }
+
+    /* LINK PREVIEW */
+    .link-preview {
+      max-width: 200px;
+      margin-top: 5px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.7);
+    }
+
+    .link-preview img {
+      width: 100%;
+      height: auto;
+    }
+
+    .link-preview-content {
+      padding: 5px;
+    }
+
+    .link-preview-title {
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .link-preview-description {
+      font-size: 10px;
+      color: var(--author-color);
+    }
+
+    /* EFFET DE BULLES DE BD */
+    .msg::after {
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: inherit;
+      border: inherit;
+      border-top: none;
+      border-right: none;
+      bottom: -8px;
+      left: 20px;
+      transform: rotate(-45deg);
+      z-index: -1;
+    }
+
+    .msg.self::after {
+      left: auto;
+      right: 20px;
+    }
+
+    /* DARK MODE TOGGLE */
     .app {
       --light-col: #e8e8e8;
       --dark-col: #26242e;
@@ -378,8 +575,8 @@
       overflow: hidden;
       user-select: none;
       margin: 1rem auto;
-      border: 3px solid #000;
-      box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8);
+      border: 3px solid var(--border-color);
+      box-shadow: 6px 6px 0px 0px var(--shadow-color);
     }
 
     .app::before {
@@ -409,11 +606,7 @@
       font-family: 'Comic Sans MS', 'Comic Neue', 'Segoe UI', sans-serif;
       font-weight: bold;
       transition: color 0.5s ease;
-      text-shadow: 1px 1px 0px #000;
-    }
-
-    body.dark-mode .time {
-      color: white;
+      text-shadow: 1px 1px 0px var(--border-color);
     }
 
     .battery {
@@ -422,11 +615,7 @@
       height: 0.45rem;
       background-color: var(--dark-col);
       transition: background-color 0.5s ease;
-      border: 2px solid #000;
-    }
-
-    body.dark-mode .battery {
-      background-color: white;
+      border: 2px solid var(--border-color);
     }
 
     .network {
@@ -440,11 +629,6 @@
       transition: border-color 0.5s ease;
     }
 
-    body.dark-mode .network {
-      border-color: transparent transparent white transparent;
-    }
-
-    /*circle*/
     .circle {
       position: relative;
       border-radius: 100%;
@@ -453,8 +637,8 @@
       background: linear-gradient(40deg, #ff0080, #ff8c00 70%);
       margin: auto;
       transition: background 0.5s ease;
-      border: 3px solid #000;
-      box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
+      border: 3px solid var(--border-color);
+      box-shadow: 4px 4px 0px 0px var(--shadow-color);
     }
 
     .circle::before {
@@ -484,8 +668,8 @@
       color: var(--dark-col);
       display: flex;
       justify-content: space-between;
-      border: 2px solid #000;
-      box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
+      border: 2px solid var(--border-color);
+      box-shadow: 3px 3px 0px 0px var(--shadow-color);
     }
 
     label::before {
@@ -519,7 +703,6 @@
       box-shadow: 0px 0px 0 150px var(--dark-col);
     }
 
-    /* Circle */
     [type="checkbox"]:checked ~ .app .circle::before {
       transform: scale(1);
       background: var(--dark-col);
@@ -555,25 +738,38 @@
       z-index: 10;
     }
 
-    /* Effet de bulles de BD */
-    .msg::after {
-      content: "";
-      position: absolute;
-      width: 15px;
-      height: 15px;
-      background: inherit;
-      border: inherit;
-      border-top: none;
-      border-right: none;
-      bottom: -8px;
-      left: 20px;
-      transform: rotate(-45deg);
-      z-index: -1;
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .input__container {
+        width: 80%;
+      }
+      
+      .theme-switcher {
+        bottom: 10px;
+        right: 10px;
+      }
+      
+      .theme-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
     }
 
-    .msg.self::after {
-      left: auto;
-      right: 20px;
+    @media (max-width: 480px) {
+      .msg {
+        max-width: 85%;
+        padding: 0.6rem 1rem;
+      }
+      
+      .input__container {
+        padding: 15px;
+      }
+      
+      .input__search {
+        padding: 10px;
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -592,6 +788,22 @@
       <span class="light">light</span>
       <span>dark</span>
     </label>
+  </div>
+
+  <div class="theme-indicator">Thème: <span id="current-theme">Comic</span></div>
+  
+  <div class="theme-switcher">
+    <button class="theme-btn active" data-theme="default" title="Thème Comic"><i class="fas fa-comment-dots"></i></button>
+    <button class="theme-btn" data-theme="animal-crossing" title="Thème Animal Crossing"><i class="fas fa-leaf"></i></button>
+    <button class="theme-btn" data-theme="stardew" title="Thème Stardew Valley"><i class="fas fa-tractor"></i></button>
+    <button class="theme-btn" data-theme="neon" title="Thème Neon Futuriste"><i class="fas fa-robot"></i></button>
+  </div>
+
+  <div class="loader">
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <p>Chargement des messages...</p>
+    </div>
   </div>
 
   <div id="erreur">Erreur : Accès non autorisé. Veuillez vous connecter d'abord.</div>
@@ -642,6 +854,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
+    // Configuration Firebase
     var firebaseConfig = {
       apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
       authDomain: "chat-entre-amis.firebaseapp.com",
@@ -649,15 +862,29 @@
       messagingSenderId: "515377701483",
       appId: "1:515377701483:web:0f81538de26d5904f9472e"
     };
+    
+    // Initialisation Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
+    
+    // Références aux éléments DOM
     const messagesDiv = document.getElementById("messages");
     const formulaire = document.getElementById("formulaire");
     const erreurDiv = document.getElementById("erreur");
     const inputContainer = document.querySelector('.input__container');
     const darkModeToggle = document.getElementById('switch');
-
+    const loader = document.querySelector('.loader');
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    const currentThemeDisplay = document.getElementById('current-theme');
+    
+    // Variables globales
+    let nomUtilisateur = '';
+    let lastMessageId = '';
+    let localMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+    
+    // Émoticônes pour les réactions
+    const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+    
     // Mettre à jour l'heure en temps réel
     function updateTime() {
       const now = new Date();
@@ -668,80 +895,260 @@
       hours = hours ? hours : 12; // Convertir 0 en 12
       document.querySelector('.time').textContent = `${hours}:${minutes} ${ampm}`;
     }
-
+    
     setInterval(updateTime, 1000);
     updateTime();
-
+    
     // Gestion du dark mode
     darkModeToggle.addEventListener('change', function() {
       document.body.classList.toggle('dark-mode', this.checked);
     });
-
-    const nomUtilisateur = sessionStorage.getItem("nomUtilisateur");
-    if (!nomUtilisateur || sessionStorage.getItem("motdepasseValide") !== "oui") {
-      erreurDiv.style.display = "block";
-    } else {
-      messagesDiv.style.display = "block";
-      formulaire.style.display = "flex";
-      inputContainer.setAttribute('data-username', nomUtilisateur);
-      chargerMessages(nomUtilisateur);
+    
+    // Changement de thème
+    themeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Retirer la classe active de tous les boutons
+        themeButtons.forEach(btn => btn.classList.remove('active'));
+        // Ajouter la classe active au bouton cliqué
+        this.classList.add('active');
+        
+        // Retirer tous les classes de thème du body
+        document.body.classList.remove(
+          'theme-animal-crossing', 
+          'theme-stardew', 
+          'theme-neon'
+        );
+        
+        // Ajouter la classe de thème correspondante
+        const theme = this.getAttribute('data-theme');
+        if (theme !== 'default') {
+          document.body.classList.add(`theme-${theme}`);
+        }
+        
+        // Mettre à jour l'affichage du thème actuel
+        updateThemeDisplay(theme);
+      });
+    });
+    
+    // Mettre à jour l'affichage du thème actuel
+    function updateThemeDisplay(theme) {
+      let themeName = 'Comic';
+      switch(theme) {
+        case 'animal-crossing': themeName = 'Animal Crossing'; break;
+        case 'stardew': themeName = 'Stardew Valley'; break;
+        case 'neon': themeName = 'Neon Futuriste'; break;
+      }
+      currentThemeDisplay.textContent = themeName;
     }
-
-    function chargerMessages(nomUtilisateur) {
+    
+    // Vérification de l'authentification
+    function checkAuth() {
+      nomUtilisateur = sessionStorage.getItem("nomUtilisateur");
+      if (!nomUtilisateur || sessionStorage.getItem("motdepasseValide") !== "oui") {
+        erreurDiv.style.display = "block";
+        return false;
+      } else {
+        messagesDiv.style.display = "block";
+        formulaire.style.display = "flex";
+        inputContainer.setAttribute('data-username', nomUtilisateur);
+        return true;
+      }
+    }
+    
+    // Charger les messages depuis Firebase et le stockage local
+    function chargerMessages() {
+      if (!checkAuth()) return;
+      
+      loader.style.display = 'flex';
+      
+      // Afficher d'abord les messages locaux
+      displayLocalMessages();
+      
+      // Charger les messages depuis Firebase
       db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(snapshot => {
           messagesDiv.innerHTML = "";
           let docs = snapshot.docs;
+          
+          // Limiter le nombre de messages conservés
           if (docs.length > 95) {
             for (let i = 0; i < docs.length - 95; i++) {
               docs[i].ref.delete();
             }
           }
-          docs.forEach(doc => {
-            const data = doc.data();
-            const divMsg = document.createElement("div");
-            divMsg.classList.add("msg");
-            if (data.nom === nomUtilisateur) divMsg.classList.add("self");
-            divMsg.innerHTML = `
-               <div class="auteur">${data.nom}</div>
-               <div class="contenu">${data.message}</div>
-               ${data.nom === nomUtilisateur ? `
-                 <span class="supprimer">
-                   <button class="delete-button" onclick="supprimerMessage('${doc.id}')">
-                     <svg viewBox="0 0 448 512" width="12" height="12">
-                       <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
-                      </svg>
-                    </button>
-                  </span>` : '' }
-            `;
-            messagesDiv.appendChild(divMsg);
-          });
-          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          
+          // Mettre à jour les messages locaux
+          localMessages = docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          
+          // Sauvegarder dans le stockage local
+          localStorage.setItem('chatMessages', JSON.stringify(localMessages));
+          
+          // Afficher tous les messages
+          displayAllMessages(localMessages);
+          
+          loader.style.display = 'none';
+        }, error => {
+          console.error("Erreur de chargement:", error);
+          loader.style.display = 'none';
+          // En cas d'erreur, afficher les messages locaux
+          displayLocalMessages();
         });
     }
-
+    
+    // Afficher les messages locaux
+    function displayLocalMessages() {
+      localMessages.forEach(msg => {
+        createMessageElement(msg);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Afficher tous les messages
+    function displayAllMessages(messages) {
+      messages.forEach(msg => {
+        createMessageElement(msg);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Créer un élément message
+    function createMessageElement(data) {
+      // Ne pas recréer les messages déjà affichés
+      if (data.id === lastMessageId) return;
+      lastMessageId = data.id;
+      
+      const divMsg = document.createElement("div");
+      divMsg.classList.add("msg");
+      if (data.nom === nomUtilisateur) divMsg.classList.add("self");
+      
+      // Formatage de la date
+      const date = data.timestamp ? data.timestamp.toDate() : new Date();
+      const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      // Détection des liens
+      let messageContent = data.message;
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      messageContent = messageContent.replace(urlRegex, url => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      });
+      
+      divMsg.innerHTML = `
+        <div class="message-info">
+          <div class="auteur">${data.nom}</div>
+          <div class="time">${timeString}</div>
+        </div>
+        <div class="contenu">${messageContent}</div>
+        ${data.nom === nomUtilisateur ? `
+          <span class="supprimer">
+            <button class="delete-button" onclick="supprimerMessage('${data.id}')">
+              <svg viewBox="0 0 448 512" width="12" height="12">
+                <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
+              </svg>
+            </button>
+          </span>` : ''}
+        <div class="reactions">
+          ${reactions.map(reaction => 
+            `<button class="reaction-btn" onclick="addReaction('${data.id}', '${reaction}')">${reaction}</button>`
+          ).join('')}
+        </div>
+      `;
+      
+      messagesDiv.appendChild(divMsg);
+    }
+    
+    // Envoyer un message
     function envoyer() {
-      const message = document.getElementById("message").value.trim();
+      const messageInput = document.getElementById("message");
+      const message = messageInput.value.trim();
+      
       if (message) {
+        // Ajouter le message à Firebase
         db.collection("messages").add({
           nom: nomUtilisateur,
           message: message,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          reactions: {}
+        }).catch(error => {
+          console.error("Erreur d'envoi:", error);
+          // En cas d'erreur, stocker localement
+          const localMsg = {
+            id: 'local-' + Date.now(),
+            nom: nomUtilisateur,
+            message: message,
+            timestamp: new Date()
+          };
+          localMessages.push(localMsg);
+          localStorage.setItem('chatMessages', JSON.stringify(localMessages));
+          createMessageElement(localMsg);
         });
-        document.getElementById("message").value = "";
+        
+        messageInput.value = "";
       }
     }
-
+    
+    // Supprimer un message
     function supprimerMessage(id) {
-      db.collection("messages").doc(id).delete();
+      if (confirm("Voulez-vous vraiment supprimer ce message ?")) {
+        db.collection("messages").doc(id).delete().catch(error => {
+          console.error("Erreur de suppression:", error);
+        });
+      }
     }
-
+    
+    // Ajouter une réaction
+    function addReaction(messageId, reaction) {
+      const messageRef = db.collection("messages").doc(messageId);
+      
+      db.runTransaction(transaction => {
+        return transaction.get(messageRef).then(doc => {
+          if (!doc.exists) {
+            throw "Document does not exist!";
+          }
+          
+          const data = doc.data();
+          const reactions = data.reactions || {};
+          const userReactions = reactions[nomUtilisateur] || [];
+          
+          // Si l'utilisateur a déjà cette réaction, la retirer
+          if (userReactions.includes(reaction)) {
+            const index = userReactions.indexOf(reaction);
+            userReactions.splice(index, 1);
+          } else {
+            userReactions.push(reaction);
+          }
+          
+          reactions[nomUtilisateur] = userReactions;
+          transaction.update(messageRef, { reactions: reactions });
+        });
+      }).catch(error => {
+        console.error("Transaction failed: ", error);
+      });
+    }
+    
     // Permettre l'envoi avec la touche Entrée
     document.getElementById("message").addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
         envoyer();
       }
+    });
+    
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Démarrer avec le thème par défaut
+      updateThemeDisplay('default');
+      
+      // Charger les messages
+      chargerMessages();
+      
+      // Précharger les polices pour améliorer les performances
+      const link = document.createElement('link');
+      link.href = 'https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
     });
   </script>
 </body>
