@@ -11,6 +11,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            image-rendering: pixelated;
         }
         
         body {
@@ -19,6 +20,51 @@
             color: #e6e6e6;
             line-height: 1.6;
             overflow-x: hidden;
+            background-image: url('https://i.imgur.com/8ZXRIQ3.png');
+            background-size: 200px;
+        }
+        
+        /* Animation de feu de camp */
+        @keyframes campfire {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        .campfire {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-image: url('https://i.imgur.com/Xd8W3Ry.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            animation: campfire 2s infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* Étoiles scintillantes */
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10%" cy="15%" r="1" fill="white"/><circle cx="25%" cy="30%" r="1" fill="white"/><circle cx="50%" cy="10%" r="1" fill="white"/><circle cx="75%" cy="25%" r="1" fill="white"/><circle cx="90%" cy="40%" r="1" fill="white"/><circle cx="15%" cy="70%" r="1" fill="white"/><circle cx="40%" cy="80%" r="1" fill="white"/><circle cx="60%" cy="60%" r="1" fill="white"/><circle cx="85%" cy="75%" r="1" fill="white"/></svg>');
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .night-mode .stars {
+            animation: twinkle 3s infinite;
         }
         
         /* Styles globaux pixel art */
@@ -26,6 +72,19 @@
             border: 4px solid #4a4a4a;
             border-image: repeating-linear-gradient(45deg, #4a4a4a, #4a4a4a 2px, #333 2px, #333 4px) 4;
             box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            background-color: #2d2d44;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pixel-border::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4a752c, #6a953c);
         }
         
         .pixel-button {
@@ -39,6 +98,7 @@
             position: relative;
             transition: all 0.2s;
             margin: 10px;
+            text-shadow: 2px 2px 0 #1a1a2e;
         }
         
         .pixel-button:hover {
@@ -80,6 +140,8 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 2;
         }
         
         /* Page d'accueil */
@@ -89,9 +151,8 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="10" height="10" x="0" y="0" fill="%234a752c"/><rect width="10" height="10" x="20" y="0" fill="%234a752c"/><rect width="10" height="10" x="40" y="0" fill="%234a752c"/><rect width="10" height="10" x="60" y="0" fill="%234a752c"/><rect width="10" height="10" x="80" y="0" fill="%234a752c"/><rect width="10" height="10" x="10" y="10" fill="%234a752c"/><rect width="10" height="10" x="30" y="10" fill="%234a752c"/><rect width="10" height="10" x="50" y="10" fill="%234a752c"/><rect width="10" height="10" x="70" y="10" fill="%234a752c"/><rect width="10" height="10" x="90" y="10" fill="%234a752c"/></svg>');
-            background-size: 100px 100px;
             text-align: center;
+            position: relative;
         }
         
         .game-title {
@@ -99,6 +160,16 @@
             margin-bottom: 2rem;
             color: #f0f0f0;
             text-shadow: 4px 4px 0 #4a752c, 8px 8px 0 #1a1a2e;
+            position: relative;
+        }
+        
+        .game-title::after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #4a752c, #6a953c);
+            margin-top: 10px;
         }
         
         .player-form {
@@ -108,6 +179,26 @@
             background-color: rgba(26, 26, 46, 0.8);
             padding: 2rem;
             border-radius: 8px;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Animation soleil/lune */
+        .sun-moon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-image: url('https://i.imgur.com/KYjQJZR.png');
+            background-size: contain;
+            z-index: 10;
+            transition: transform 1s;
+        }
+        
+        .night-mode .sun-moon {
+            background-image: url('https://i.imgur.com/9mQZbBx.png');
+            transform: rotate(180deg);
         }
         
         /* Lobby */
@@ -122,6 +213,7 @@
             flex-wrap: wrap;
             gap: 15px;
             margin: 20px 0;
+            justify-content: center;
         }
         
         .player-card {
@@ -131,6 +223,11 @@
             width: 150px;
             text-align: center;
             position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-5px);
         }
         
         .player-card::after {
@@ -154,16 +251,21 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
+            align-items: center;
         }
         
         .game-phase {
             font-size: 1.5rem;
             color: #f0f0f0;
+            text-shadow: 2px 2px 0 #1a1a2e;
         }
         
         .game-timer {
             font-size: 1.2rem;
             color: #f0f0f0;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         
         .narration-box {
@@ -171,6 +273,17 @@
             padding: 20px;
             margin: 20px 0;
             border-left: 5px solid #4a752c;
+            position: relative;
+        }
+        
+        .narration-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4a752c, #6a953c);
         }
         
         .action-buttons {
@@ -178,6 +291,7 @@
             flex-wrap: wrap;
             gap: 10px;
             margin: 20px 0;
+            justify-content: center;
         }
         
         .chat-container {
@@ -187,16 +301,21 @@
             background-color: rgba(0, 0, 0, 0.5);
             padding: 10px;
             margin-top: 20px;
+            border-radius: 5px;
         }
         
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 10px;
+            padding: 10px;
+            background-color: rgba(26, 26, 46, 0.5);
+            border-radius: 5px;
         }
         
         .chat-input-container {
             display: flex;
+            gap: 10px;
         }
         
         .chat-input {
@@ -206,6 +325,7 @@
             background-color: #2d2d44;
             color: white;
             border: none;
+            border-radius: 5px;
         }
         
         /* Écran de rôle */
@@ -222,6 +342,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            backdrop-filter: blur(5px);
         }
         
         .role-emoji {
@@ -240,6 +361,7 @@
             font-size: 1.5rem;
             margin-bottom: 30px;
             max-width: 80%;
+            line-height: 1.8;
         }
         
         /* Mode nuit */
@@ -252,25 +374,46 @@
             background-color: #3a3a6a;
         }
         
+        /* Animation de transition */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .game-title {
                 font-size: 2rem;
             }
             
-            .player-list {
-                justify-content: center;
-            }
-            
             .player-card {
                 width: 120px;
+                font-size: 0.8rem;
+            }
+            
+            .role-description {
+                font-size: 1rem;
+            }
+            
+            .pixel-button {
+                padding: 8px 16px;
+                font-size: 12px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Éléments d'arrière-plan -->
+    <div class="stars"></div>
+    <div class="campfire"></div>
+    <div class="sun-moon"></div>
+    
     <!-- Écran d'accueil -->
-    <div class="home-screen">
+    <div class="home-screen fade-in">
         <div class="container">
             <h1 class="game-title">LE VILLAGE</h1>
             <div class="player-form pixel-border">
@@ -364,6 +507,17 @@
         <button id="confirm-role-btn" class="pixel-button">Je suis prêt</button>
     </div>
     
+    <!-- Sons du jeu -->
+    <audio id="bg-music" loop>
+        <source src="https://assets.codepen.io/21542/stardew-valley-theme.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="night-sound">
+        <source src="https://assets.codepen.io/21542/werewolf-how.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="day-sound">
+        <source src="https://assets.codepen.io/21542/birds-chirping.mp3" type="audio/mpeg">
+    </audio>
+    
     <!-- Firebase et scripts du jeu -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
@@ -381,9 +535,15 @@
         };
         
         // Initialisation Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        
+        // Activer la persistance des données
+        firebase.firestore().enablePersistence()
+            .catch((err) => {
+                console.error("Erreur de persistance Firestore:", err);
+            });
         
         // Variables globales du jeu
         let currentGameId = null;
@@ -419,6 +579,11 @@
         
         // Initialisation de l'application
         document.addEventListener('DOMContentLoaded', () => {
+            // Démarrer la musique de fond
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.volume = 0.3;
+            bgMusic.play().catch(e => console.log("La lecture automatique a été bloquée:", e));
+            
             // Écouteurs d'événements
             document.getElementById('create-game-btn').addEventListener('click', createGame);
             document.getElementById('join-game-btn').addEventListener('click', joinGame);
@@ -449,6 +614,10 @@
                 currentGameId = generateGameId();
                 isGameCreator = true;
                 
+                // Authentification anonyme
+                await auth.signInAnonymously();
+                currentPlayerId = auth.currentUser.uid;
+                
                 // Créer le document de la partie dans Firestore
                 await db.collection('games').doc(currentGameId).set({
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -463,7 +632,14 @@
                 });
                 
                 // Ajouter le joueur à la partie
-                await joinGameAsPlayer();
+                await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
+                    pseudo: currentPlayerName,
+                    role: "",
+                    isAlive: true,
+                    type: "player",
+                    score: 0,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 
                 // Afficher le lobby
                 showLobbyScreen();
@@ -473,7 +649,7 @@
                 
             } catch (error) {
                 console.error("Erreur lors de la création de la partie:", error);
-                alert("Une erreur est survenue lors de la création de la partie.");
+                alert("Une erreur est survenue lors de la création de la partie. Vérifie ta connexion internet.");
             }
         }
         
@@ -505,8 +681,19 @@
                     return;
                 }
                 
+                // Authentification anonyme
+                await auth.signInAnonymously();
+                currentPlayerId = auth.currentUser.uid;
+                
                 // Rejoindre la partie
-                await joinGameAsPlayer();
+                await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
+                    pseudo: currentPlayerName,
+                    role: "",
+                    isAlive: true,
+                    type: "player",
+                    score: 0,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 
                 // Afficher le lobby
                 showLobbyScreen();
@@ -516,25 +703,8 @@
                 
             } catch (error) {
                 console.error("Erreur lors de la connexion à la partie:", error);
-                alert("Une erreur est survenue lors de la connexion à la partie.");
+                alert("Une erreur est survenue lors de la connexion à la partie. Vérifie ta connexion internet.");
             }
-        }
-        
-        // Fonction pour rejoindre une partie en tant que joueur
-        async function joinGameAsPlayer() {
-            // Authentification anonyme
-            await auth.signInAnonymously();
-            currentPlayerId = auth.currentUser.uid;
-            
-            // Ajouter le joueur à la collection des joueurs
-            await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
-                pseudo: currentPlayerName,
-                role: "",
-                isAlive: true,
-                type: "player",
-                score: 0,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
         }
         
         // Fonction pour vérifier si un joueur revient à une partie
@@ -553,8 +723,31 @@
                         currentPlayerName = savedPlayerName;
                         currentGameId = savedGameId;
                         
-                        // Rejoindre la partie
-                        await joinGameAsPlayer();
+                        // Authentification anonyme
+                        await auth.signInAnonymously();
+                        currentPlayerId = auth.currentUser.uid;
+                        
+                        // Vérifier si le joueur est déjà dans la partie
+                        const playerDoc = await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).get();
+                        
+                        if (!playerDoc.exists) {
+                            // Rejoindre la partie
+                            await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
+                                pseudo: currentPlayerName,
+                                role: "",
+                                isAlive: true,
+                                type: "player",
+                                score: 0,
+                                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        } else {
+                            // Mettre à jour le pseudo au cas où il a changé
+                            await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).update({
+                                pseudo: currentPlayerName
+                            });
+                            
+                            currentPlayerRole = playerDoc.data().role;
+                        }
                         
                         // Afficher l'écran approprié
                         if (gameDoc.data().status === GAME_PHASES.LOBBY) {
@@ -675,6 +868,11 @@
         
         // Fonction pour afficher l'écran de rôle
         function showRoleScreen(role) {
+            // Jouer un son spécial pour certains rôles
+            if (role === 'WEREWOLF') {
+                document.getElementById('night-sound').play();
+            }
+            
             document.getElementById('role-emoji').textContent = ROLES[role].emoji;
             document.getElementById('role-description').textContent = `Tu es ${ROLES[role].name}\n\n${ROLES[role].description}`;
             document.querySelector('.role-screen').style.display = 'flex';
@@ -704,7 +902,11 @@
             if (gameUnsubscribe) gameUnsubscribe();
             
             gameUnsubscribe = db.collection('games').doc(currentGameId).onSnapshot(async (doc) => {
-                if (!doc.exists) return;
+                if (!doc.exists) {
+                    alert("Cette partie n'existe plus !");
+                    window.location.reload();
+                    return;
+                }
                 
                 const gameData = doc.data();
                 gameState = gameData;
@@ -731,6 +933,15 @@
                     case GAME_PHASES.NIGHT:
                     case GAME_PHASES.DAY:
                     case GAME_PHASES.VOTING:
+                        // Jouer les sons appropriés
+                        if (gameData.status === GAME_PHASES.NIGHT) {
+                            document.getElementById('night-sound').play();
+                            document.getElementById('day-sound').pause();
+                        } else {
+                            document.getElementById('day-sound').play();
+                            document.getElementById('night-sound').pause();
+                        }
+                        
                         // Afficher l'écran de jeu si ce n'est pas déjà fait
                         if (document.querySelector('.game-screen').style.display !== 'block') {
                             showGameScreen();
@@ -1047,7 +1258,142 @@
         // Fonction pour afficher l'écran de fin de partie
         function showEndGameScreen() {
             // À implémenter selon les règles de victoire
-            alert("La partie est terminée !");
+            const winners = determineWinners();
+            
+            const narrationBox = document.getElementById('narration-box');
+            if (narrationBox) {
+                narrationBox.innerHTML = `
+                    <h2>Partie terminée !</h2>
+                    <p>Les ${winners.team} ont gagné !</p>
+                    <p>${winners.message}</p>
+                    <div style="margin-top: 20px;">
+                        ${winners.players.map(p => `<div>${p.pseudo} (${ROLES[p.role]?.name || 'Inconnu'})</div>`).join('')}
+                    </div>
+                `;
+            }
+            
+            // Afficher un bouton pour rejouer
+            const actionButtons = document.getElementById('action-buttons');
+            if (actionButtons) {
+                actionButtons.innerHTML = '';
+                
+                if (isGameCreator) {
+                    const btn = document.createElement('button');
+                    btn.className = 'pixel-button';
+                    btn.textContent = 'Rejouer avec le même groupe';
+                    btn.onclick = restartGame;
+                    actionButtons.appendChild(btn);
+                }
+                
+                const btnLeave = document.createElement('button');
+                btnLeave.className = 'pixel-button';
+                btnLeave.textContent = 'Quitter la partie';
+                btnLeave.onclick = leaveGame;
+                actionButtons.appendChild(btnLeave);
+            }
+        }
+        
+        // Fonction pour déterminer les gagnants
+        function determineWinners() {
+            // Logique simplifiée - à compléter selon les règles exactes
+            const alivePlayers = Object.values(players).filter(p => p.isAlive);
+            
+            // Vérifier si les amoureux ont gagné
+            const lovers = alivePlayers.filter(p => p.loverUid && players[p.loverUid]?.isAlive);
+            if (lovers.length >= 2 && alivePlayers.length === 2) {
+                return {
+                    team: "Amoureux",
+                    message: "Les amoureux survivent seuls et remportent la partie !",
+                    players: lovers
+                };
+            }
+            
+            // Vérifier si les loups-garous ont gagné
+            const werewolves = alivePlayers.filter(p => p.role === 'WEREWOLF');
+            const villagers = alivePlayers.filter(p => p.role !== 'WEREWOLF');
+            
+            if (werewolves.length >= villagers.length) {
+                return {
+                    team: "Loups-Garous",
+                    message: "Les loups-garous ont éliminé tous les villageois !",
+                    players: werewolves
+                };
+            } else {
+                return {
+                    team: "Villageois",
+                    message: "Les villageois ont éliminé tous les loups-garous !",
+                    players: villagers
+                };
+            }
+        }
+        
+        // Fonction pour redémarrer une partie
+        async function restartGame() {
+            if (!isGameCreator) return;
+            
+            try {
+                // Réinitialiser la partie
+                await db.collection('games').doc(currentGameId).update({
+                    status: GAME_PHASES.ROLE_ASSIGNMENT,
+                    phase: "night_1",
+                    phaseStep: "cupid"
+                });
+                
+                // Réinitialiser les joueurs
+                const batch = db.batch();
+                const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+                
+                playersSnapshot.forEach(doc => {
+                    const ref = db.collection('games').doc(currentGameId).collection('players').doc(doc.id);
+                    batch.update(ref, {
+                        role: "",
+                        isAlive: true,
+                        loverUid: null
+                    });
+                });
+                
+                await batch.commit();
+                
+                // Supprimer les anciens messages et actions
+                await clearGameData();
+                
+            } catch (error) {
+                console.error("Erreur lors du redémarrage de la partie:", error);
+            }
+        }
+        
+        // Fonction pour quitter la partie
+        function leaveGame() {
+            sessionStorage.removeItem('gameId');
+            window.location.reload();
+        }
+        
+        // Fonction pour nettoyer les données de la partie
+        async function clearGameData() {
+            const chats = ['general', 'werewolves', 'spectators'];
+            const batch = db.batch();
+            
+            // Supprimer les messages de chat
+            for (const chat of chats) {
+                const messages = await db.collection('games').doc(currentGameId).collection('chats').doc(chat).collection('messages').get();
+                messages.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+            }
+            
+            // Supprimer les actions de nuit
+            const nightActions = await db.collection('games').doc(currentGameId).collection('nightActions').get();
+            nightActions.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            
+            // Supprimer les votes
+            const votes = await db.collection('games').doc(currentGameId).collection('votes').get();
+            votes.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            
+            await batch.commit();
         }
         
         // Fonction pour générer un ID de partie
