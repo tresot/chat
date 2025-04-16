@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Village - Jeu multijoueur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Styles globaux pixel art */
+        .pixel-border {
+            border: 4px solid #4a4a4a;
+            border-image: repeating-linear-gradient(45deg, #4a4a4a, #4a4a4a 2px, #333 2px, #333 4px) 4;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .pixel-button {
+            background-color: #4a752c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            margin: 10px;
+        }
+        
+        .pixel-button:hover {
+            background-color: #5e8c3e;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .pixel-button:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .pixel-input {
+            background-color: #2d2d44;
+            border: 3px solid #4a4a4a;
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        /* Animation d'écriture */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        .typing-animation {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end);
+        }
+        
+        /* Layout principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Page d'accueil */
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="10" height="10" x="0" y="0" fill="%234a752c"/><rect width="10" height="10" x="20" y="0" fill="%234a752c"/><rect width="10" height="10" x="40" y="0" fill="%234a752c"/><rect width="10" height="10" x="60" y="0" fill="%234a752c"/><rect width="10" height="10" x="80" y="0" fill="%234a752c"/><rect width="10" height="10" x="10" y="10" fill="%234a752c"/><rect width="10" height="10" x="30" y="10" fill="%234a752c"/><rect width="10" height="10" x="50" y="10" fill="%234a752c"/><rect width="10" height="10" x="70" y="10" fill="%234a752c"/><rect width="10" height="10" x="90" y="10" fill="%234a752c"/></svg>');
+            background-size: 100px 100px;
+            text-align: center;
+        }
+        
+        .game-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: #f0f0f0;
+            text-shadow: 4px 4px 0 #4a752c, 8px 8px 0 #1a1a2e;
+        }
+        
+        .player-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(26, 26, 46, 0.8);
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        /* Lobby */
+        .lobby-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .player-card {
+            background-color: #2d2d44;
+            padding: 15px;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .player-card::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #4a752c;
+        }
+        
+        /* Écran de jeu */
+        .game-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .game-phase {
+            font-size: 1.5rem;
+            color: #f0f0f0;
+        }
+        
+        .game-timer {
+            font-size: 1.2rem;
+            color: #f0f0f0;
+        }
+        
+        .narration-box {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #4a752c;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            margin-top: 20px;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .chat-input-container {
+            display: flex;
+        }
+        
+        .chat-input {
+            flex-grow: 1;
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #2d2d44;
+            color: white;
+            border: none;
+        }
+        
+        /* Écran de rôle */
+        .role-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .role-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .role-description {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            max-width: 80%;
+        }
+        
+        /* Mode nuit */
+        .night-mode {
+            background-color: #0a0a1a;
+            color: #a0a0a0;
+        }
+        
+        .night-mode .pixel-button {
+            background-color: #3a3a6a;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .player-list {
+                justify-content: center;
+            }
+            
+            .player-card {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran d'accueil -->
+    <div class="home-screen">
+        <div class="container">
+            <h1 class="game-title">LE VILLAGE</h1>
+            <div class="player-form pixel-border">
+                <input type="text" id="player-name" class="pixel-input" placeholder="Ton pseudo" maxlength="15">
+                <button id="create-game-btn" class="pixel-button">Créer une partie</button>
+                <div style="margin: 15px 0; position: relative;">
+                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background-color: #4a4a4a;"></div>
+                    <span style="background-color: #1a1a2e; padding: 0 10px; position: relative;">OU</span>
+                </div>
+                <input type="text" id="game-id" class="pixel-input" placeholder="Code de la partie">
+                <button id="join-game-btn" class="pixel-button">Rejoindre</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lobby -->
+    <div class="lobby-screen pixel-border">
+        <div class="container">
+            <h2>Place du Village</h2>
+            <p id="game-code-display">Code de la partie: </p>
+            <div class="player-list" id="player-list">
+                <!-- Joueurs seront ajoutés ici dynamiquement -->
+            </div>
+            
+            <div id="game-settings" style="margin-top: 30px;">
+                <h3>Paramètres de la partie</h3>
+                <div id="role-selection" style="margin: 15px 0;">
+                    <h4>Rôles disponibles:</h4>
+                    <!-- Cases à cocher pour les rôles -->
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="allow-spectators" class="pixel-input" style="width: auto;">
+                        Autoriser les spectateurs
+                    </label>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="narrator" id="auto-narrator" checked class="pixel-input" style="width: auto;">
+                        Narration automatique
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="narrator" id="manual-narrator" class="pixel-input" style="width: auto;">
+                        Narration manuelle
+                    </label>
+                </div>
+                
+                <button id="start-game-btn" class="pixel-button" disabled>Commencer la nuit</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Écran de jeu principal -->
+    <div class="game-screen pixel-border">
+        <div class="container">
+            <div class="game-header">
+                <div class="game-phase" id="game-phase">☀️ Jour 1</div>
+                <div class="game-timer" id="game-timer">⏱️ 02:00</div>
+            </div>
+            
+            <div class="narration-box" id="narration-box">
+                <!-- Narration du jeu -->
+            </div>
+            
+            <div class="action-buttons" id="action-buttons">
+                <!-- Boutons d'action selon le rôle et la phase -->
+            </div>
+            
+            <div class="player-list" id="alive-players">
+                <!-- Joueurs en vie -->
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages de chat -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Écrire un message...">
+                    <button id="send-chat-btn" class="pixel-button" style="margin: 0;">Envoyer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Écran de rôle -->
+    <div class="role-screen" id="role-screen">
+        <div class="role-emoji" id="role-emoji">👤</div>
+        <div class="role-description" id="role-description">Tu es un Villageois</div>
+        <button id="confirm-role-btn" class="pixel-button">Je suis prêt</button>
+    </div>
+    
+    <!-- Firebase et scripts du jeu -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfWw2bWiJEfVrYDBhCuaG65b55qhbVma0",
+            authDomain: "chat-entre-amis.firebaseapp.com",
+            projectId: "chat-entre-amis",
+            storageBucket: "chat-entre-amis.appspot.com",
+            messagingSenderId: "515377701483",
+            appId: "1:515377701483:web:0f81538de26d5904f9472e"
+        };
+        
+        // Initialisation Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Variables globales du jeu
+        let currentGameId = null;
+        let currentPlayerId = null;
+        let currentPlayerName = "";
+        let currentPlayerRole = "";
+        let isGameCreator = false;
+        let gameState = {};
+        let players = {};
+        let gameUnsubscribe = null;
+        let chatUnsubscribe = null;
+        
+        // Rôles disponibles
+        const ROLES = {
+            VILLAGER: { emoji: "👤", name: "Villageois", description: "Tu es un simple villageois. Ton but est d'éliminer tous les Loups-Garous." },
+            WEREWOLF: { emoji: "🐺", name: "Loup-Garou", description: "Tu es un Loup-Garou. Chaque nuit, tu dois choisir une victime avec tes compères." },
+            SEER: { emoji: "🔮", name: "Voyante", description: "Tu peux découvrir le rôle d'un joueur chaque nuit." },
+            WITCH: { emoji: "🧄", name: "Sorcière", description: "Tu possèdes une potion de vie et une potion de mort. Utilise-les avec sagesse." },
+            CUPID: { emoji: "💘", name: "Cupidon", description: "La première nuit, tu dois former un couple de deux joueurs qui devront survivre ensemble." },
+            HUNTER: { emoji: "🏹", name: "Chasseur", description: "Si tu meurs, tu peux emporter quelqu'un avec toi." },
+            LITTLE_GIRL: { emoji: "👧", name: "Petite Fille", description: "Tu peux espionner les Loups-Garous la nuit, mais si tu es découverte, tu meurs." }
+        };
+        
+        // Phases du jeu
+        const GAME_PHASES = {
+            LOBBY: "lobby",
+            ROLE_ASSIGNMENT: "role_assignment",
+            NIGHT: "night",
+            DAY: "day",
+            VOTING: "voting",
+            END: "end"
+        };
+        
+        // Initialisation de l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Écouteurs d'événements
+            document.getElementById('create-game-btn').addEventListener('click', createGame);
+            document.getElementById('join-game-btn').addEventListener('click', joinGame);
+            document.getElementById('start-game-btn').addEventListener('click', startGame);
+            document.getElementById('confirm-role-btn').addEventListener('click', confirmRole);
+            document.getElementById('send-chat-btn').addEventListener('click', sendChatMessage);
+            document.getElementById('chat-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+            
+            // Vérifier si on revient à une partie
+            checkReturningPlayer();
+        });
+        
+        // Fonction pour créer une nouvelle partie
+        async function createGame() {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                alert("Choisis un pseudo !");
+                return;
+            }
+            
+            currentPlayerName = playerName;
+            sessionStorage.setItem('playerName', playerName);
+            
+            try {
+                // Créer une partie avec un ID aléatoire
+                currentGameId = generateGameId();
+                isGameCreator = true;
+                
+                // Créer le document de la partie dans Firestore
+                await db.collection('games').doc(currentGameId).set({
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: GAME_PHASES.LOBBY,
+                    settings: {
+                        roles: Object.keys(ROLES),
+                        allowSpectators: false,
+                        narratorType: "auto"
+                    },
+                    phase: "night_1",
+                    phaseStep: "cupid"
+                });
+                
+                // Ajouter le joueur à la partie
+                await joinGameAsPlayer();
+                
+                // Afficher le lobby
+                showLobbyScreen();
+                
+                // Écouter les changements de la partie
+                setupGameListener();
+                
+            } catch (error) {
+                console.error("Erreur lors de la création de la partie:", error);
+                alert("Une erreur est survenue lors de la création de la partie.");
+            }
+        }
+        
+        // Fonction pour rejoindre une partie existante
+        async function joinGame() {
+            const playerName = document.getElementById('player-name').value.trim();
+            const gameId = document.getElementById('game-id').value.trim().toUpperCase();
+            
+            if (!playerName) {
+                alert("Choisis un pseudo !");
+                return;
+            }
+            
+            if (!gameId) {
+                alert("Entre le code de la partie !");
+                return;
+            }
+            
+            currentPlayerName = playerName;
+            currentGameId = gameId;
+            sessionStorage.setItem('playerName', playerName);
+            sessionStorage.setItem('gameId', gameId);
+            
+            try {
+                // Vérifier si la partie existe
+                const gameDoc = await db.collection('games').doc(gameId).get();
+                if (!gameDoc.exists) {
+                    alert("Aucune partie trouvée avec ce code !");
+                    return;
+                }
+                
+                // Rejoindre la partie
+                await joinGameAsPlayer();
+                
+                // Afficher le lobby
+                showLobbyScreen();
+                
+                // Écouter les changements de la partie
+                setupGameListener();
+                
+            } catch (error) {
+                console.error("Erreur lors de la connexion à la partie:", error);
+                alert("Une erreur est survenue lors de la connexion à la partie.");
+            }
+        }
+        
+        // Fonction pour rejoindre une partie en tant que joueur
+        async function joinGameAsPlayer() {
+            // Authentification anonyme
+            await auth.signInAnonymously();
+            currentPlayerId = auth.currentUser.uid;
+            
+            // Ajouter le joueur à la collection des joueurs
+            await db.collection('games').doc(currentGameId).collection('players').doc(currentPlayerId).set({
+                pseudo: currentPlayerName,
+                role: "",
+                isAlive: true,
+                type: "player",
+                score: 0,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // Fonction pour vérifier si un joueur revient à une partie
+        async function checkReturningPlayer() {
+            const savedPlayerName = sessionStorage.getItem('playerName');
+            const savedGameId = sessionStorage.getItem('gameId');
+            
+            if (savedPlayerName && savedGameId) {
+                document.getElementById('player-name').value = savedPlayerName;
+                document.getElementById('game-id').value = savedGameId;
+                
+                // Vérifier si la partie existe toujours
+                try {
+                    const gameDoc = await db.collection('games').doc(savedGameId).get();
+                    if (gameDoc.exists) {
+                        currentPlayerName = savedPlayerName;
+                        currentGameId = savedGameId;
+                        
+                        // Rejoindre la partie
+                        await joinGameAsPlayer();
+                        
+                        // Afficher l'écran approprié
+                        if (gameDoc.data().status === GAME_PHASES.LOBBY) {
+                            showLobbyScreen();
+                        } else {
+                            showGameScreen();
+                        }
+                        
+                        // Écouter les changements de la partie
+                        setupGameListener();
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la vérification de la partie:", error);
+                }
+            }
+        }
+        
+        // Fonction pour afficher l'écran de lobby
+        function showLobbyScreen() {
+            document.querySelector('.home-screen').style.display = 'none';
+            document.querySelector('.lobby-screen').style.display = 'block';
+            document.querySelector('.game-screen').style.display = 'none';
+            
+            document.getElementById('game-code-display').textContent = `Code de la partie: ${currentGameId}`;
+            
+            // Si créateur, afficher les paramètres
+            if (isGameCreator) {
+                document.getElementById('game-settings').style.display = 'block';
+                document.getElementById('start-game-btn').disabled = false;
+                
+                // Remplir les options de rôles
+                const roleSelection = document.getElementById('role-selection');
+                roleSelection.innerHTML = '<h4>Rôles disponibles:</h4>';
+                
+                Object.entries(ROLES).forEach(([key, role]) => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.gap = '10px';
+                    div.style.margin = '5px 0';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `role-${key}`;
+                    checkbox.value = key;
+                    checkbox.checked = true;
+                    checkbox.className = 'pixel-input';
+                    checkbox.style.width = 'auto';
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `role-${key}`;
+                    label.textContent = `${role.emoji} ${role.name}`;
+                    
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+                    roleSelection.appendChild(div);
+                });
+            } else {
+                document.getElementById('game-settings').style.display = 'none';
+                document.getElementById('start-game-btn').disabled = true;
+            }
+        }
+        
+        // Fonction pour démarrer le jeu
+        async function startGame() {
+            if (!isGameCreator) return;
+            
+            // Récupérer les rôles sélectionnés
+            const selectedRoles = [];
+            document.querySelectorAll('#role-selection input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedRoles.push(checkbox.value);
+            });
+            
+            if (selectedRoles.length === 0) {
+                alert("Sélectionne au moins un rôle !");
+                return;
+            }
+            
+            // Mettre à jour les paramètres de la partie
+            await db.collection('games').doc(currentGameId).update({
+                'settings.roles': selectedRoles,
+                'settings.allowSpectators': document.getElementById('allow-spectators').checked,
+                'settings.narratorType': document.getElementById('auto-narrator').checked ? 'auto' : 'manual',
+                status: GAME_PHASES.ROLE_ASSIGNMENT
+            });
+        }
+        
+        // Fonction pour attribuer les rôles aux joueurs
+        async function assignRoles(gameData) {
+            const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+            const playersList = playersSnapshot.docs.map(doc => doc.id);
+            const availableRoles = [...gameData.settings.roles];
+            
+            // Mélanger les rôles disponibles
+            shuffleArray(availableRoles);
+            
+            // Attribuer les rôles aux joueurs
+            const updates = [];
+            for (let i = 0; i < playersList.length; i++) {
+                const role = i < availableRoles.length ? availableRoles[i] : 'VILLAGER';
+                updates.push(
+                    db.collection('games').doc(currentGameId).collection('players').doc(playersList[i]).update({
+                        role: role,
+                        isAlive: true
+                    })
+                );
+            }
+            
+            await Promise.all(updates);
+            
+            // Passer à la première nuit
+            await db.collection('games').doc(currentGameId).update({
+                status: GAME_PHASES.NIGHT,
+                phase: "night_1",
+                phaseStep: "cupid"
+            });
+        }
+        
+        // Fonction pour afficher l'écran de rôle
+        function showRoleScreen(role) {
+            document.getElementById('role-emoji').textContent = ROLES[role].emoji;
+            document.getElementById('role-description').textContent = `Tu es ${ROLES[role].name}\n\n${ROLES[role].description}`;
+            document.querySelector('.role-screen').style.display = 'flex';
+            
+            // Stocker le rôle du joueur
+            currentPlayerRole = role;
+        }
+        
+        // Fonction pour confirmer la vue du rôle
+        function confirmRole() {
+            document.querySelector('.role-screen').style.display = 'none';
+            showGameScreen();
+        }
+        
+        // Fonction pour afficher l'écran de jeu principal
+        function showGameScreen() {
+            document.querySelector('.home-screen').style.display = 'none';
+            document.querySelector('.lobby-screen').style.display = 'none';
+            document.querySelector('.game-screen').style.display = 'block';
+            
+            // Mettre à jour l'interface selon l'état du jeu
+            updateGameInterface();
+        }
+        
+        // Fonction pour configurer l'écouteur de la partie
+        function setupGameListener() {
+            if (gameUnsubscribe) gameUnsubscribe();
+            
+            gameUnsubscribe = db.collection('games').doc(currentGameId).onSnapshot(async (doc) => {
+                if (!doc.exists) return;
+                
+                const gameData = doc.data();
+                gameState = gameData;
+                
+                // Mettre à jour la liste des joueurs
+                await updatePlayersList();
+                
+                // Gérer les différents états du jeu
+                switch (gameData.status) {
+                    case GAME_PHASES.LOBBY:
+                        // Mettre à jour les paramètres affichés
+                        if (isGameCreator) {
+                            document.getElementById('allow-spectators').checked = gameData.settings?.allowSpectators || false;
+                            document.getElementById('auto-narrator').checked = gameData.settings?.narratorType !== 'manual';
+                            document.getElementById('manual-narrator').checked = gameData.settings?.narratorType === 'manual';
+                        }
+                        break;
+                        
+                    case GAME_PHASES.ROLE_ASSIGNMENT:
+                        // Attribuer les rôles
+                        await assignRoles(gameData);
+                        break;
+                        
+                    case GAME_PHASES.NIGHT:
+                    case GAME_PHASES.DAY:
+                    case GAME_PHASES.VOTING:
+                        // Afficher l'écran de jeu si ce n'est pas déjà fait
+                        if (document.querySelector('.game-screen').style.display !== 'block') {
+                            showGameScreen();
+                        }
+                        
+                        // Afficher l'écran de rôle si le joueur ne connaît pas encore son rôle
+                        if (currentPlayerRole === "" && players[currentPlayerId]?.role) {
+                            showRoleScreen(players[currentPlayerId].role);
+                        }
+                        
+                        // Mettre à jour l'interface
+                        updateGameInterface();
+                        break;
+                        
+                    case GAME_PHASES.END:
+                        // Afficher l'écran de fin
+                        showEndGameScreen();
+                        break;
+                }
+            });
+            
+            // Configurer l'écouteur du chat
+            setupChatListener();
+        }
+        
+        // Fonction pour configurer l'écouteur du chat
+        function setupChatListener() {
+            if (chatUnsubscribe) chatUnsubscribe();
+            
+            const chatPath = determineChatPath();
+            if (!chatPath) return;
+            
+            chatUnsubscribe = db.collection('games').doc(currentGameId).collection('chats').doc(chatPath).collection('messages')
+                .orderBy('timestamp', 'asc')
+                .onSnapshot((snapshot) => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    chatMessages.innerHTML = '';
+                    
+                    snapshot.forEach((doc) => {
+                        const message = doc.data();
+                        const messageElement = document.createElement('div');
+                        messageElement.innerHTML = `<strong>${message.from}:</strong> ${message.text}`;
+                        messageElement.style.marginBottom = '5px';
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Faire défiler vers le bas
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+        }
+        
+        // Fonction pour déterminer le chemin du chat selon le rôle et la phase
+        function determineChatPath() {
+            if (!gameState || !currentPlayerRole) return null;
+            
+            // Spectateurs voient toujours le chat des spectateurs
+            if (players[currentPlayerId]?.type === 'spectator') {
+                return 'spectators';
+            }
+            
+            // Joueurs morts voient le chat des spectateurs
+            if (!players[currentPlayerId]?.isAlive) {
+                return 'spectators';
+            }
+            
+            // Pendant la nuit, les loups ont leur propre chat
+            if (gameState.status === GAME_PHASES.NIGHT && currentPlayerRole === 'WEREWOLF') {
+                return 'werewolves';
+            }
+            
+            // Sinon, chat général
+            return 'general';
+        }
+        
+        // Fonction pour envoyer un message de chat
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const message = chatInput.value.trim();
+            
+            if (!message || !currentPlayerName) return;
+            
+            const chatPath = determineChatPath();
+            if (!chatPath) return;
+            
+            try {
+                await db.collection('games').doc(currentGameId).collection('chats').doc(chatPath).collection('messages').add({
+                    from: currentPlayerName,
+                    text: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                chatInput.value = '';
+            } catch (error) {
+                console.error("Erreur lors de l'envoi du message:", error);
+            }
+        }
+        
+        // Fonction pour mettre à jour la liste des joueurs
+        async function updatePlayersList() {
+            const playersSnapshot = await db.collection('games').doc(currentGameId).collection('players').get();
+            players = {};
+            
+            const playerListElement = document.getElementById('player-list') || document.getElementById('alive-players');
+            if (!playerListElement) return;
+            
+            playerListElement.innerHTML = '';
+            
+            playersSnapshot.forEach((doc) => {
+                const player = doc.data();
+                players[doc.id] = player;
+                
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card pixel-border';
+                playerCard.innerHTML = `
+                    <div style="font-size: 2rem;">${player.role ? ROLES[player.role]?.emoji || '👤' : '👤'}</div>
+                    <div>${player.pseudo}</div>
+                    ${!player.isAlive ? '<div style="color: red;">☠️</div>' : ''}
+                `;
+                
+                playerListElement.appendChild(playerCard);
+            });
+        }
+        
+        // Fonction pour mettre à jour l'interface du jeu
+        function updateGameInterface() {
+            if (!gameState || !currentPlayerRole) return;
+            
+            // Mettre à jour la phase affichée
+            document.getElementById('game-phase').textContent = getPhaseDisplayName(gameState.phase);
+            
+            // Mettre à jour la narration
+            updateNarration();
+            
+            // Mettre à jour les actions disponibles
+            updateActionButtons();
+            
+            // Mettre à jour le thème jour/nuit
+            updateDayNightTheme();
+        }
+        
+        // Fonction pour obtenir le nom affichable de la phase
+        function getPhaseDisplayName(phase) {
+            if (!phase) return "";
+            
+            if (phase.startsWith('night')) {
+                const nightNumber = phase.split('_')[1];
+                return `🌙 Nuit ${nightNumber}`;
+            } else if (phase.startsWith('day')) {
+                const dayNumber = phase.split('_')[1];
+                return `☀️ Jour ${dayNumber}`;
+            }
+            
+            return phase;
+        }
+        
+        // Fonction pour mettre à jour la narration
+        function updateNarration() {
+            const narrationBox = document.getElementById('narration-box');
+            if (!narrationBox) return;
+            
+            let narrationText = "";
+            
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                if (currentPlayerRole === 'WEREWOLF') {
+                    narrationText = "Les Loups-Garous se réveillent... Choisissez une victime !";
+                } else if (currentPlayerRole === 'SEER') {
+                    narrationText = "La Voyante se réveille... Choisissez un joueur dont vous voulez connaître le rôle.";
+                } else if (currentPlayerRole === 'WITCH') {
+                    narrationText = "La Sorcière se réveille... Voulez-vous utiliser une potion ?";
+                } else if (currentPlayerRole === 'CUPID' && gameState.phase === 'night_1') {
+                    narrationText = "Cupidon se réveille... Choisissez deux amoureux.";
+                } else {
+                    narrationText = "🌙 Vous dormez profondément...";
+                }
+            } else if (gameState.status === GAME_PHASES.DAY) {
+                narrationText = "☀️ Le village se réveille. Discutez pour trouver les Loups-Garous !";
+            } else if (gameState.status === GAME_PHASES.VOTING) {
+                narrationText = "🗳️ C'est l'heure de voter ! Choisissez qui éliminer.";
+            }
+            
+            narrationBox.innerHTML = narrationText;
+        }
+        
+        // Fonction pour mettre à jour les boutons d'action
+        function updateActionButtons() {
+            const actionButtons = document.getElementById('action-buttons');
+            if (!actionButtons) return;
+            
+            actionButtons.innerHTML = '';
+            
+            if (!players[currentPlayerId]?.isAlive) {
+                // Joueur mort - pas d'actions
+                return;
+            }
+            
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                // Actions de nuit selon le rôle
+                if (currentPlayerRole === 'WEREWOLF') {
+                    // Afficher les joueurs vivants non loups
+                    Object.entries(players).forEach(([id, player]) => {
+                        if (player.isAlive && player.role !== 'WEREWOLF') {
+                            const btn = document.createElement('button');
+                            btn.className = 'pixel-button';
+                            btn.textContent = `Voter pour ${player.pseudo}`;
+                            btn.onclick = () => submitNightAction('werewolf_vote', id);
+                            actionButtons.appendChild(btn);
+                        }
+                    });
+                } else if (currentPlayerRole === 'SEER') {
+                    // Afficher les joueurs à espionner
+                    Object.entries(players).forEach(([id, player]) => {
+                        if (player.isAlive && id !== currentPlayerId) {
+                            const btn = document.createElement('button');
+                            btn.className = 'pixel-button';
+                            btn.textContent = `Voir ${player.pseudo}`;
+                            btn.onclick = () => submitNightAction('seer_peek', id);
+                            actionButtons.appendChild(btn);
+                        }
+                    });
+                } else if (currentPlayerRole === 'WITCH') {
+                    // Afficher les options de potions
+                    const btnHeal = document.createElement('button');
+                    btnHeal.className = 'pixel-button';
+                    btnHeal.textContent = 'Utiliser potion de vie';
+                    btnHeal.onclick = () => submitNightAction('witch_heal', '');
+                    actionButtons.appendChild(btnHeal);
+                    
+                    const btnKill = document.createElement('button');
+                    btnKill.className = 'pixel-button';
+                    btnKill.textContent = 'Utiliser potion de mort';
+                    btnKill.onclick = () => submitNightAction('witch_kill', '');
+                    actionButtons.appendChild(btnKill);
+                } else if (currentPlayerRole === 'CUPID' && gameState.phase === 'night_1') {
+                    // Afficher les joueurs pour Cupidon
+                    const alivePlayers = Object.entries(players).filter(([id, player]) => player.isAlive && id !== currentPlayerId);
+                    
+                    if (alivePlayers.length >= 2) {
+                        const select1 = document.createElement('select');
+                        select1.className = 'pixel-input';
+                        
+                        const select2 = document.createElement('select');
+                        select2.className = 'pixel-input';
+                        
+                        alivePlayers.forEach(([id, player]) => {
+                            const option1 = document.createElement('option');
+                            option1.value = id;
+                            option1.textContent = player.pseudo;
+                            select1.appendChild(option1);
+                            
+                            const option2 = document.createElement('option');
+                            option2.value = id;
+                            option2.textContent = player.pseudo;
+                            select2.appendChild(option2);
+                        });
+                        
+                        const btn = document.createElement('button');
+                        btn.className = 'pixel-button';
+                        btn.textContent = 'Lier ces deux joueurs';
+                        btn.onclick = () => submitNightAction('cupid_match', [select1.value, select2.value]);
+                        
+                        actionButtons.appendChild(select1);
+                        actionButtons.appendChild(select2);
+                        actionButtons.appendChild(btn);
+                    }
+                }
+            } else if (gameState.status === GAME_PHASES.VOTING) {
+                // Afficher les joueurs pour le vote
+                Object.entries(players).forEach(([id, player]) => {
+                    if (player.isAlive && id !== currentPlayerId) {
+                        const btn = document.createElement('button');
+                        btn.className = 'pixel-button';
+                        btn.textContent = `Voter contre ${player.pseudo}`;
+                        btn.onclick = () => submitVote(id);
+                        actionButtons.appendChild(btn);
+                    }
+                });
+            }
+        }
+        
+        // Fonction pour soumettre une action de nuit
+        async function submitNightAction(actionType, target) {
+            try {
+                await db.collection('games').doc(currentGameId).collection('nightActions').doc(currentPlayerId).set({
+                    action: actionType,
+                    target: target,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Erreur lors de la soumission de l'action:", error);
+            }
+        }
+        
+        // Fonction pour soumettre un vote
+        async function submitVote(targetPlayerId) {
+            try {
+                await db.collection('games').doc(currentGameId).collection('votes').doc(currentPlayerId).set({
+                    target: targetPlayerId,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Erreur lors de la soumission du vote:", error);
+            }
+        }
+        
+        // Fonction pour mettre à jour le thème jour/nuit
+        function updateDayNightTheme() {
+            if (gameState.status === GAME_PHASES.NIGHT) {
+                document.body.classList.add('night-mode');
+            } else {
+                document.body.classList.remove('night-mode');
+            }
+        }
+        
+        // Fonction pour afficher l'écran de fin de partie
+        function showEndGameScreen() {
+            // À implémenter selon les règles de victoire
+            alert("La partie est terminée !");
+        }
+        
+        // Fonction pour générer un ID de partie
+        function generateGameId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 5; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // Fonction pour mélanger un tableau
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
