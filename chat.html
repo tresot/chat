@@ -5,17 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat entre amis</title>
   <style>
+    :root {
+      --primary-color: #3b82f6;
+      --secondary-color: #60a5fa;
+      --light-bg: #eef2ff;
+      --dark-bg: #1e293b;
+      --msg-light: #ffffff;
+      --msg-dark: #334155;
+      --text-light: #000;
+      --text-dark: #fff;
+      --border-color: #000;
+      --accent-color: #e9b50b;
+    }
+
     /* ANIMATION DU BACKGROUND */
     @keyframes gradient {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     body {
@@ -27,11 +34,12 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      transition: background 0.5s ease;
+      transition: all 0.5s ease;
     }
 
     body.dark-mode {
       background: linear-gradient(145deg, #1a1a2e, #16213e);
+      color: var(--text-dark);
     }
 
     #messages {
@@ -41,34 +49,34 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      background: #eef2ff;
-      transition: background 0.5s ease;
-      border: 3px solid #000;
-      background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
+      background: var(--light-bg);
+      transition: all 0.5s ease;
+      border: 3px solid var(--border-color);
+      background-image: radial-gradient(circle, var(--msg-light) 1px, transparent 1px);
       background-size: 20px 20px;
     }
 
     body.dark-mode #messages {
-      background: #1e293b;
-      background-image: radial-gradient(circle, #334155 1px, transparent 1px);
+      background: var(--dark-bg);
+      background-image: radial-gradient(circle, var(--msg-dark) 1px, transparent 1px);
     }
 
     .msg {
-      background: #ffffff;
+      background: var(--msg-light);
       border-radius: 8px;
       padding: 0.8rem 1.2rem;
       max-width: 75%;
       position: relative;
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
-      border: 2px solid #000;
-      transition: transform 0.2s ease, box-shadow 0.2s, background 0.5s ease;
+      border: 2px solid var(--border-color);
+      transition: all 0.2s ease;
       font-weight: bold;
       line-height: 1.4;
     }
 
     body.dark-mode .msg {
-      background: #334155;
-      color: white;
+      background: var(--msg-dark);
+      color: var(--text-dark);
     }
 
     .msg:hover {
@@ -78,14 +86,9 @@
 
     .msg.self {
       align-self: flex-end;
-      background: linear-gradient(145deg, #3b82f6, #60a5fa);
-      color: white;
-      border: 2px solid #000;
-    }
-
-    .msg.self .auteur {
-      color: #dbeafe;
-      text-shadow: 1px 1px 0px #000;
+      background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+      color: var(--text-dark);
+      border: 2px solid var(--border-color);
     }
 
     .auteur {
@@ -102,6 +105,11 @@
       color: #ccc;
     }
 
+    .msg.self .auteur {
+      color: #dbeafe;
+      text-shadow: 1px 1px 0px var(--border-color);
+    }
+
     .contenu {
       font-size: 1rem;
       word-wrap: break-word;
@@ -109,7 +117,7 @@
     }
 
     body.dark-mode .contenu {
-      color: white;
+      color: var(--text-dark);
     }
 
     .supprimer {
@@ -123,16 +131,15 @@
       display: flex;
       padding: 1rem;
       background: #dbeafe;
-      border-top: 3px solid #000;
+      border-top: 3px solid var(--border-color);
       gap: 1rem;
       align-items: center;
       justify-content: center;
-      transition: background 0.5s ease, border-color 0.5s ease;
+      transition: all 0.5s ease;
     }
 
     body.dark-mode #formulaire {
-      background: #1e293b;
-      border-color: #000;
+      background: var(--dark-bg);
     }
 
     #erreur {
@@ -141,12 +148,12 @@
       padding: 1rem;
       text-align: center;
       display: none;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
       font-weight: bold;
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
     }
 
-    /* CHAMP DE SAISIE & CONTAINER (Uiverse.io par 0xnihilism) */
+    /* CHAMP DE SAISIE & CONTAINER */
     .input__container {
       position: relative;
       background: #f0f0f0;
@@ -155,14 +162,14 @@
       justify-content: flex-start;
       align-items: center;
       gap: 15px;
-      border: 4px solid #000;
+      border: 4px solid var(--border-color);
       width: 90%;
       max-width: 600px;
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       transform-style: preserve-3d;
       transform: rotateX(10deg) rotateY(-10deg);
       perspective: 1000px;
-      box-shadow: 10px 10px 0 #000;
+      box-shadow: 10px 10px 0 var(--border-color);
       animation: slideInRight 0.5s ease-out;
     }
 
@@ -180,18 +187,14 @@
       bottom: 0;
       z-index: -1;
       transform: translateZ(-50px);
-      background: linear-gradient(
-        45deg,
-        rgba(255, 107, 107, 0.4) 0%,
-        rgba(255, 107, 107, 0.1) 100%
-      );
+      background: linear-gradient(45deg, rgba(255, 107, 107, 0.4) 0%, rgba(255, 107, 107, 0.1) 100%);
       filter: blur(20px);
     }
 
     .input__button__shadow {
       cursor: pointer;
-      border: 3px solid #000;
-      background: #e9b50b;
+      border: 3px solid var(--border-color);
+      background: var(--accent-color);
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       display: flex;
       justify-content: center;
@@ -205,13 +208,13 @@
     }
 
     .input__button__shadow:hover {
-      background: #e9b50b;
+      background: var(--accent-color);
       transform: translateZ(10px) translateX(-5px) translateY(-5px);
-      box-shadow: 5px 5px 0 0 #000;
+      box-shadow: 5px 5px 0 0 var(--border-color);
     }
 
     .input__button__shadow svg {
-      fill: #000;
+      fill: var(--border-color);
       width: 25px;
       height: 25px;
     }
@@ -219,11 +222,11 @@
     .input__search {
       width: 100%;
       outline: none;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
       padding: 15px;
       font-size: 18px;
       background: #fff;
-      color: #000;
+      color: var(--text-light);
       transform: translateZ(10px);
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       position: relative;
@@ -243,7 +246,7 @@
     .input__search:focus {
       background: #f0f0f0;
       transform: translateZ(20px) translateX(-5px) translateY(-5px);
-      box-shadow: 5px 5px 0 0 #000;
+      box-shadow: 5px 5px 0 0 var(--border-color);
     }
 
     .input__container::before {
@@ -251,18 +254,18 @@
       position: absolute;
       top: -15px;
       left: 20px;
-      background: #e9b50b;
-      color: #000;
+      background: var(--accent-color);
+      color: var(--border-color);
       font-weight: bold;
       padding: 5px 10px;
       font-size: 14px;
       transform: translateZ(50px);
       z-index: 4;
-      border: 2px solid #000;
+      border: 2px solid var(--border-color);
       box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
     }
 
-    /* NOUVEAU BOUTON ENVOYER (From Uiverse.io by vinodjangid07) */
+    /* BOUTON ENVOYER */
     .button {
       width: 50px;
       height: 50px;
@@ -279,7 +282,7 @@
       overflow: hidden;
       position: relative;
       animation: slideInRight 0.5s ease-out;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
     }
 
     .svgIcon {
@@ -319,7 +322,31 @@
       transition-duration: 0.3s;
     }
 
-    /* From Uiverse.io by 3bdel3ziz-T */
+    /* CARTE LIGHT/DARK - Version mobile réduite */
+    @media (max-width: 768px) {
+      .app {
+        width: 10rem;
+        height: 10rem;
+        margin: 0.5rem auto;
+      }
+      
+      .circle {
+        width: 5rem;
+        height: 5rem;
+      }
+      
+      label {
+        margin: 10px 15px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+      }
+      
+      .time {
+        font-size: 0.8rem;
+      }
+    }
+
+    /* CARTE LIGHT/DARK - Version desktop */
     .app {
       --light-col: #e8e8e8;
       --dark-col: #26242e;
@@ -335,8 +362,21 @@
       overflow: hidden;
       user-select: none;
       margin: 1rem auto;
-      border: 3px solid #000;
+      border: 3px solid var(--border-color);
       box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .app.collapsed {
+      height: 3rem;
+      overflow: hidden;
+    }
+
+    .app.collapsed nav,
+    .app.collapsed .circle,
+    .app.collapsed label {
+      display: none;
     }
 
     .app::before {
@@ -345,7 +385,7 @@
       width: var(--dimension);
       height: var(--dimension);
       border-radius: 50%;
-      background: #26242e;
+      background: var(--dark-col);
       position: absolute;
       top: calc(50% - (var(--dimension) / 2));
       left: calc(50% - (var(--dimension)) / 2);
@@ -366,11 +406,11 @@
       font-family: 'Comic Sans MS', 'Comic Neue', 'Segoe UI', sans-serif;
       font-weight: bold;
       transition: color 0.5s ease;
-      text-shadow: 1px 1px 0px #000;
+      text-shadow: 1px 1px 0px var(--border-color);
     }
 
     body.dark-mode .time {
-      color: white;
+      color: var(--text-dark);
     }
 
     .battery {
@@ -379,11 +419,11 @@
       height: 0.45rem;
       background-color: var(--dark-col);
       transition: background-color 0.5s ease;
-      border: 2px solid #000;
+      border: 2px solid var(--border-color);
     }
 
     body.dark-mode .battery {
-      background-color: white;
+      background-color: var(--text-dark);
     }
 
     .network {
@@ -398,7 +438,7 @@
     }
 
     body.dark-mode .network {
-      border-color: transparent transparent white transparent;
+      border-color: transparent transparent var(--text-dark) transparent;
     }
 
     /*circle*/
@@ -409,8 +449,8 @@
       height: 8rem;
       background: linear-gradient(40deg, #ff0080, #ff8c00 70%);
       margin: auto;
-      transition: background 0.5s ease;
-      border: 3px solid #000;
+      transition: all 0.5s ease;
+      border: 3px solid var(--border-color);
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
     }
 
@@ -441,7 +481,7 @@
       color: var(--dark-col);
       display: flex;
       justify-content: space-between;
-      border: 2px solid #000;
+      border: 2px solid var(--border-color);
       box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
     }
 
@@ -532,11 +572,138 @@
       left: auto;
       right: 20px;
     }
+
+    /* Boutons thèmes */
+    .theme-selector {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .theme-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid var(--border-color);
+      cursor: pointer;
+      background-size: cover;
+      box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .theme-btn.active {
+      display: block;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .main-theme-btn {
+      width: 60px;
+      height: 60px;
+      background: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Bouton son */
+    .sound-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      border: 3px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
+      z-index: 100;
+    }
+
+    /* Style pour les votes */
+    .vote-container {
+      background: rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 5px;
+      border: 2px dashed var(--border-color);
+    }
+
+    .vote-option {
+      margin: 5px 0;
+      padding: 5px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid var(--border-color);
+    }
+
+    .vote-option:hover {
+      background: rgba(255,255,255,0.9);
+    }
+
+    .vote-progress {
+      height: 20px;
+      background: #ddd;
+      border-radius: 4px;
+      margin-top: 5px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .vote-progress-bar {
+      height: 100%;
+      background: var(--primary-color);
+      transition: width 0.5s ease;
+    }
+
+    .vote-total {
+      font-size: 0.8rem;
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    /* Réactions */
+    .reactions {
+      display: none;
+      position: absolute;
+      bottom: -15px;
+      right: 10px;
+      background: white;
+      border-radius: 20px;
+      padding: 2px 5px;
+      border: 1px solid var(--border-color);
+      box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.8);
+    }
+
+    .msg:hover .reactions {
+      display: flex;
+    }
+
+    .reaction {
+      margin: 0 2px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
   <input id="switch" type="checkbox" />
-  <div class="app">
+  <div class="app" id="theme-card">
     <nav>
       <time class="time">4:20 AM</time>
       <div class="icons">
@@ -550,6 +717,17 @@
       <span>dark</span>
     </label>
   </div>
+
+  <div class="theme-selector">
+    <div class="main-theme-btn" id="main-theme-btn">🎨</div>
+    <div class="theme-btn" id="theme-starwars" style="background-color: #000; color: #ffe81f;">⭐</div>
+    <div class="theme-btn" id="theme-onepiece" style="background-color: #ff0000; color: #000;">🏴‍☠️</div>
+    <div class="theme-btn" id="theme-stardew" style="background-color: #6b8c42; color: #f4e7c3;">🌱</div>
+    <div class="theme-btn" id="theme-cyberpunk" style="background-color: #ff003c; color: #00f0ff;">🔮</div>
+    <div class="theme-btn" id="theme-minecraft" style="background-color: #3a6b1f; color: #f8c537;">⛏️</div>
+  </div>
+
+  <div class="sound-btn" id="sound-btn">🔊</div>
 
   <div id="erreur">Erreur : Accès non autorisé. Veuillez vous connecter d'abord.</div>
   <div id="messages" style="display:none;"></div>
@@ -594,6 +772,11 @@
     </div>
   </div>
 
+  <!-- Sons -->
+  <audio id="message-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"></audio>
+  <audio id="theme-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+  <audio id="darkmode-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3"></audio>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -609,11 +792,23 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Variables globales
     const messagesDiv = document.getElementById("messages");
     const formulaire = document.getElementById("formulaire");
     const erreurDiv = document.getElementById("erreur");
     const inputContainer = document.querySelector('.input__container');
     const darkModeToggle = document.getElementById('switch');
+    const themeCard = document.getElementById('theme-card');
+    const mainThemeBtn = document.getElementById('main-theme-btn');
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    const soundBtn = document.getElementById('sound-btn');
+    const messageSound = document.getElementById('message-sound');
+    const themeSound = document.getElementById('theme-sound');
+    const darkmodeSound = document.getElementById('darkmode-sound');
+    
+    let soundEnabled = true;
+    let currentTheme = 'default';
+    let themesExpanded = false;
 
     // Mettre à jour l'heure en temps réel
     function updateTime() {
@@ -622,7 +817,7 @@
       const minutes = now.getMinutes().toString().padStart(2, '0');
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
-      hours = hours ? hours : 12; // Convertir 0 en 12
+      hours = hours ? hours : 12;
       document.querySelector('.time').textContent = `${hours}:${minutes} ${ampm}`;
     }
 
@@ -632,8 +827,53 @@
     // Gestion du dark mode
     darkModeToggle.addEventListener('change', function() {
       document.body.classList.toggle('dark-mode', this.checked);
+      if (soundEnabled) darkmodeSound.play();
     });
 
+    // Gestion de la carte thème (réductible)
+    themeCard.addEventListener('click', function() {
+      this.classList.toggle('collapsed');
+    });
+
+    // Gestion des thèmes
+    mainThemeBtn.addEventListener('click', function() {
+      themesExpanded = !themesExpanded;
+      themeButtons.forEach(btn => {
+        btn.classList.toggle('active', themesExpanded);
+      });
+      if (soundEnabled) themeSound.play();
+    });
+
+    // Appliquer un thème
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.body.className = ''; // Reset classes
+      document.body.classList.add(theme);
+      if (darkModeToggle.checked) {
+        document.body.classList.add('dark-mode');
+      }
+      
+      // Jouer le son si activé
+      if (soundEnabled) themeSound.play();
+    }
+
+    // Ajouter les écouteurs pour les boutons de thème
+    themeButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const theme = this.id.replace('theme-', '');
+        applyTheme(theme);
+        themesExpanded = false;
+        themeButtons.forEach(b => b.classList.remove('active'));
+      });
+    });
+
+    // Gestion du son
+    soundBtn.addEventListener('click', function() {
+      soundEnabled = !soundEnabled;
+      this.textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
+    // Chargement initial
     const nomUtilisateur = sessionStorage.getItem("nomUtilisateur");
     if (!nomUtilisateur || sessionStorage.getItem("motdepasseValide") !== "oui") {
       erreurDiv.style.display = "block";
@@ -644,25 +884,63 @@
       chargerMessages(nomUtilisateur);
     }
 
+    // Charger les messages avec gestion des votes et réactions
     function chargerMessages(nomUtilisateur) {
       db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(snapshot => {
           messagesDiv.innerHTML = "";
           let docs = snapshot.docs;
+          
+          // Limiter à 95 messages maximum
           if (docs.length > 95) {
             for (let i = 0; i < docs.length - 95; i++) {
               docs[i].ref.delete();
             }
           }
+          
           docs.forEach(doc => {
             const data = doc.data();
             const divMsg = document.createElement("div");
             divMsg.classList.add("msg");
-            if (data.nom === nomUtilisateur) divMsg.classList.add("self");
+            
+            if (data.nom === nomUtilisateur) {
+              divMsg.classList.add("self");
+            }
+            
+            // Gestion des votes
+            let voteContent = '';
+            if (data.message.startsWith('<vote>') && data.message.endsWith('</vote>')) {
+              const voteOptions = data.message
+                .replace('<vote>', '')
+                .replace('</vote>', '')
+                .split('</>')
+                .map(opt => opt.replace(/<\d+>/, '').trim());
+              
+              voteContent = `
+                <div class="vote-container">
+                  <div class="vote-title">Vote en cours:</div>
+                  ${voteOptions.map((opt, i) => `
+                    <div class="vote-option" onclick="voteOnOption('${doc.id}', ${i})">
+                      ${opt}
+                    </div>
+                  `).join('')}
+                  <div class="vote-total">0 votes</div>
+                </div>
+              `;
+            }
+            
             divMsg.innerHTML = `
               <div class="auteur">${data.nom}</div>
-              <div class="contenu">${data.message}</div>
+              <div class="contenu">
+                ${voteContent || data.message}
+              </div>
+              <div class="reactions">
+                <span class="reaction">👍</span>
+                <span class="reaction">❤️</span>
+                <span class="reaction">😂</span>
+                <span class="reaction">😲</span>
+              </div>
               ${data.nom === nomUtilisateur ? `
                 <span class="supprimer">
                   <button class="button" onclick="supprimerMessage('${doc.id}')">
@@ -670,14 +948,22 @@
                       <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path>
                     </svg>
                   </button>
-                </span>` : '' }
+                </span>` : ''}
             `;
+            
             messagesDiv.appendChild(divMsg);
           });
+          
           messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          
+          // Jouer le son de message si activé
+          if (soundEnabled && docs.length > 0) {
+            messageSound.play();
+          }
         });
     }
 
+    // Envoyer un message
     function envoyer() {
       const message = document.getElementById("message").value.trim();
       if (message) {
@@ -690,6 +976,14 @@
       }
     }
 
+    // Gestion des votes
+    function voteOnOption(messageId, optionIndex) {
+      // Implémentation de la logique de vote
+      console.log(`Vote pour l'option ${optionIndex} du message ${messageId}`);
+      // À compléter avec la logique Firebase
+    }
+
+    // Supprimer un message
     function supprimerMessage(id) {
       db.collection("messages").doc(id).delete();
     }
