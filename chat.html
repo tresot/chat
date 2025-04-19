@@ -366,7 +366,7 @@
       transition-duration: 0.3s;
     }
 
-    /* Carte horloge/dark mode */
+    /* From Uiverse.io by 3bdel3ziz-T */
     .app {
       --light-col: #e8e8e8;
       --dark-col: #26242e;
@@ -376,7 +376,7 @@
       position: relative;
       z-index: 1;
       width: 18rem;
-      height: 10rem;
+      height: 18rem;
       background-color: #e8e8e8;
       border-radius: 30px;
       overflow: hidden;
@@ -384,7 +384,7 @@
       margin: 1rem auto;
       border: 3px solid #000;
       box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8);
-      transition: all 0.3s ease;
+      transition: height 0.3s ease;
       cursor: pointer;
     }
 
@@ -399,13 +399,6 @@
 
     .app.collapsed nav {
       padding: 5px 0;
-    }
-
-    @media (max-width: 768px) {
-      .app {
-        width: 16rem;
-        height: 9rem;
-      }
     }
 
     .app::before {
@@ -475,8 +468,8 @@
     .circle {
       position: relative;
       border-radius: 100%;
-      width: 5rem;
-      height: 5rem;
+      width: 8rem;
+      height: 8rem;
       background: linear-gradient(40deg, #ff0080, #ff8c00 70%);
       margin: auto;
       transition: background 0.5s ease;
@@ -489,8 +482,8 @@
       position: absolute;
       border-radius: 50%;
       right: 0;
-      width: 4rem;
-      height: 4rem;
+      width: 6rem;
+      height: 6rem;
       z-index: 1;
       background: var(--bg);
       transform: scale(0);
@@ -500,20 +493,19 @@
 
     label {
       width: auto;
-      margin: 10px 20px;
-      padding: 10px 25px;
+      margin: 20px 30px;
+      padding: 15px 35px;
       background-color: rgba(0, 0, 0, 0.1);
       border-radius: 50px;
       position: relative;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1.1rem;
       font-weight: bolder;
       color: var(--dark-col);
       display: flex;
       justify-content: space-between;
       border: 2px solid #000;
       box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
-      transition: all 0.3s ease;
     }
 
     label::before {
@@ -617,11 +609,15 @@
       background-color: rgba(51, 65, 85, 0.7);
     }
 
+    .vote-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
     .vote-options {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 8px;
     }
 
     .vote-option-btn {
@@ -644,6 +640,10 @@
     .vote-results {
       margin-top: 10px;
       display: none;
+    }
+
+    .vote-result-item {
+      margin-bottom: 5px;
     }
 
     .vote-result-bar {
@@ -687,13 +687,17 @@
     }
 
     /* Style pour la musique */
-    .music-controls {
+    .music-control {
       position: fixed;
       bottom: 10px;
       right: 10px;
-      background: #e9b50b;
-      padding: 10px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
+      background-color: #e9b50b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: 3px solid #000;
       cursor: pointer;
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
@@ -701,16 +705,16 @@
       transition: all 0.3s;
     }
 
-    .music-controls:hover {
+    .music-control:hover {
       transform: scale(1.1);
     }
 
-    .music-controls.muted {
+    .music-control.muted {
       opacity: 0.7;
       position: relative;
     }
 
-    .music-controls.muted::after {
+    .music-control.muted::after {
       content: "";
       position: absolute;
       top: 50%;
@@ -719,6 +723,11 @@
       height: 3px;
       background: #000;
       transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    .music-control svg {
+      width: 24px;
+      height: 24px;
     }
 
     /* Style pour les maths */
@@ -819,8 +828,8 @@
   </div>
 
   <!-- Contrôle musique -->
-  <div class="music-controls" id="musicControl" onclick="toggleMusic()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div class="music-control" id="musicControl" onclick="toggleMusic()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 18V5l12-2v13"></path>
       <circle cx="6" cy="18" r="3"></circle>
       <circle cx="18" cy="16" r="3"></circle>
@@ -1066,7 +1075,7 @@
             const resultsElement = document.getElementById(`${voteId}-results`);
             
             if (resultsElement && !activeVotes[voteId].ended) {
-              let resultsHTML = '<div>Résultats:</div>';
+              let resultsHTML = '<div class="vote-result-item">Résultats:</div>';
               const totalVotes = Object.values(results).reduce((sum, count) => sum + count, 0);
               
               activeVotes[voteId].options.forEach(option => {
@@ -1074,8 +1083,8 @@
                 const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                 
                 resultsHTML += `
-                  <div>
-                    <div>${option.text}: ${count} vote(s)</div>
+                  <div class="vote-result-item">
+                    <div>${option.text}: ${count} vote(s) (${percentage}%)</div>
                     <div class="vote-result-bar" style="width: ${percentage}%"></div>
                   </div>
                 `;
@@ -1083,6 +1092,11 @@
               
               resultsElement.innerHTML = resultsHTML;
               resultsElement.style.display = 'block';
+              
+              // Afficher le bouton terminer si c'est le créateur
+              if (activeVotes[voteId].creator === nomUtilisateur) {
+                document.getElementById(`${voteId}-end`).style.display = 'block';
+              }
             }
           }
         });
