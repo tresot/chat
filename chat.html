@@ -64,9 +64,6 @@
       transition: transform 0.2s ease, box-shadow 0.2s, background 0.5s ease;
       font-weight: bold;
       line-height: 1.4;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
     body.dark-mode .msg {
@@ -99,8 +96,6 @@
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
     }
 
     body.dark-mode .auteur {
@@ -111,7 +106,6 @@
       font-size: 1rem;
       word-wrap: break-word;
       transition: color 0.5s ease;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     body.dark-mode .contenu {
@@ -150,8 +144,6 @@
       border: 3px solid #000;
       font-weight: bold;
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-transform: uppercase;
     }
 
     /* CHAMP DE SAISIE & CONTAINER (Uiverse.io par 0xnihilism) */
@@ -210,7 +202,6 @@
       z-index: 3;
       font-weight: bold;
       text-transform: uppercase;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     .input__button__shadow:hover {
@@ -237,7 +228,7 @@
       transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
       position: relative;
       z-index: 3;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+      font-family: "Roboto", Arial, sans-serif;
       letter-spacing: -0.5px;
       box-sizing: border-box;
     }
@@ -269,8 +260,6 @@
       z-index: 4;
       border: 2px solid #000;
       box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-transform: uppercase;
     }
 
     /* NOUVEAU BOUTON ENVOYER (From Uiverse.io by vinodjangid07) */
@@ -420,7 +409,7 @@
       border-radius: 50%;
       background: #26242e;
       position: absolute;
-      top: calc(50% - (var(--dimension) / 2);
+      top: calc(50% - (var(--dimension) / 2));
       left: calc(50% - (var(--dimension)) / 2);
       display: block;
       box-shadow: 0px 0px 0 0px var(--dark-col);
@@ -517,7 +506,6 @@
       justify-content: space-between;
       border: 2px solid #000;
       box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     label::before {
@@ -615,7 +603,6 @@
       padding: 10px;
       border-radius: 8px;
       background-color: rgba(255, 255, 255, 0.7);
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     body.dark-mode .vote-container {
@@ -625,7 +612,6 @@
     .vote-title {
       font-weight: bold;
       margin-bottom: 10px;
-      text-transform: uppercase;
     }
 
     .vote-options {
@@ -644,8 +630,6 @@
       text-align: center;
       transition: all 0.2s;
       box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.8);
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-transform: uppercase;
     }
 
     .vote-option-btn:hover {
@@ -679,8 +663,6 @@
       cursor: pointer;
       font-weight: bold;
       display: none;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
-      text-transform: uppercase;
     }
 
     .vote-ended {
@@ -688,7 +670,6 @@
       color: #666;
       margin-top: 5px;
       display: none;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     body.dark-mode .vote-ended {
@@ -721,7 +702,7 @@
       cursor: pointer;
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
       z-index: 100;
-      transition: transform 0.3s;
+      transition: all 0.3s;
     }
 
     .music-control:hover {
@@ -730,9 +711,7 @@
 
     .music-control.muted {
       opacity: 0.7;
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
+      position: relative;
     }
 
     .music-control.muted::after {
@@ -758,14 +737,12 @@
       padding: 2px 5px;
       border-radius: 4px;
       display: inline-block;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     .math-result {
       font-weight: bold;
       color: #3b82f6;
       margin-left: 5px;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     body.dark-mode .math-result {
@@ -782,26 +759,11 @@
       background: rgba(255, 255, 255, 0.5);
       padding: 2px 5px;
       border-radius: 3px;
-      font-family: 'Comic Sans MS', 'Comic Neue', cursive;
     }
 
     body.dark-mode .data-consumption {
       color: #ccc;
       background: rgba(0, 0, 0, 0.3);
-    }
-
-    /* Style pour le code exécuté */
-    .executed-code {
-      border: 2px solid #000;
-      border-radius: 8px;
-      padding: 10px;
-      margin: 10px 0;
-      background-color: white;
-      box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.8);
-    }
-
-    body.dark-mode .executed-code {
-      background-color: #334155;
     }
   </style>
 </head>
@@ -967,45 +929,6 @@
 
     // Fonction pour analyser et convertir le contenu du message
     function parseMessageContent(content) {
-      // Détection et exécution du code HTML/CSS/JS
-      const codeRegex = /<code>(.*?)<\/code>/gs;
-      content = content.replace(codeRegex, (match, codeContent) => {
-        try {
-          // Créer un iframe pour exécuter le code en toute sécurité
-          const iframe = document.createElement('iframe');
-          iframe.srcdoc = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <style>
-                body { margin: 0; padding: 10px; background: white; }
-                ${codeContent.includes('<style>') ? '' : codeContent}
-              </style>
-            </head>
-            <body>
-              ${codeContent.includes('<style>') ? codeContent : ''}
-              <script>
-                ${codeContent.includes('<script>') ? codeContent : ''}
-              <\/script>
-            </body>
-            </html>
-          `;
-          iframe.style.width = '100%';
-          iframe.style.height = '300px';
-          iframe.style.border = '2px solid #000';
-          iframe.style.borderRadius = '8px';
-          iframe.style.marginTop = '10px';
-          
-          const container = document.createElement('div');
-          container.className = 'executed-code';
-          container.appendChild(iframe);
-          
-          return container.outerHTML;
-        } catch (e) {
-          return `<div class="executed-code">Erreur d'exécution du code</div>`;
-        }
-      });
-      
       // Détection des votes
       const voteRegex = /<vote>(.*?)<\/vote>/gs;
       content = content.replace(voteRegex, (match, voteContent) => {
