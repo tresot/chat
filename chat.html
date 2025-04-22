@@ -710,8 +710,8 @@
     }
 
     .music-control.muted {
+      background-color: #e9b50b;
       opacity: 0.7;
-      position: relative;
     }
 
     .music-control.muted::after {
@@ -942,7 +942,29 @@
         const voteId = 'vote-' + Math.random().toString(36).substr(2, 9);
         activeVotes[voteId] = { options, creator: nomUtilisateur, ended: false };
         
-        return createVoteElement(voteId, options);
+        let html = `<div class="vote-container" id="${voteId}">`;
+        html += `<div class="vote-title">Sondage</div>`;
+        html += `<div class="vote-options">`;
+        
+        options.forEach(option => {
+          html += `
+            <div class="vote-option-btn" onclick="vote('${voteId}', '${option.id}')">
+              ${option.text}
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+        html += `<div class="vote-results" id="${voteId}-results"></div>`;
+        
+        if (activeVotes[voteId].creator === nomUtilisateur) {
+          html += `<button class="vote-end-btn" id="${voteId}-end" onclick="endVote('${voteId}')">Terminer le vote</button>`;
+        }
+        
+        html += `<div class="vote-ended" id="${voteId}-ended">Sondage terminé</div>`;
+        html += `</div>`;
+        
+        return html;
       });
       
       // Détection des images
@@ -969,36 +991,9 @@
       return content;
     }
 
-    // Créer un élément de vote
-    function createVoteElement(voteId, options) {
-      let html = `<div class="vote-container" id="${voteId}">`;
-      html += `<div class="vote-title">Sondage</div>`;
-      html += `<div class="vote-options">`;
-      
-      options.forEach(option => {
-        html += `
-          <div class="vote-option-btn" onclick="vote('${voteId}', '${option.id}')">
-            ${option.text}
-          </div>
-        `;
-      });
-      
-      html += `</div>`;
-      html += `<div class="vote-results" id="${voteId}-results"></div>`;
-      
-      if (activeVotes[voteId].creator === nomUtilisateur) {
-        html += `<button class="vote-end-btn" id="${voteId}-end" onclick="endVote('${voteId}')">Terminer le vote</button>`;
-      }
-      
-      html += `<div class="vote-ended" id="${voteId}-ended">Sondage terminé</div>`;
-      html += `</div>`;
-      
-      return html;
-    }
-
     // Fonction pour voter
     function vote(voteId, optionId) {
-      if (activeVotes[voteId].ended) return;
+      if (activeVotes[voteId] && activeVotes[voteId].ended) return;
       
       db.collection("votes").doc(voteId).set({
         [optionId]: firebase.firestore.FieldValue.increment(1)
@@ -1007,7 +1002,7 @@
 
     // Fonction pour terminer un vote
     function endVote(voteId) {
-      if (activeVotes[voteId].creator === nomUtilisateur) {
+      if (activeVotes[voteId] && activeVotes[voteId].creator === nomUtilisateur) {
         activeVotes[voteId].ended = true;
         const voteElement = document.getElementById(voteId);
         if (voteElement) {
