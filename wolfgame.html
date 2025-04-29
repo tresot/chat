@@ -1848,6 +1848,127 @@
                 setTimeout(() => notification.remove(), 500);
             }, 3000);
         }
+            async function createGame() {
+        const playerName = document.getElementById('player-name').value.trim();
+        if (!playerName) {
+            showNotification("Choisis un pseudo !");
+            console.log("DEBUG: Aucun pseudo saisi.");
+            return;
+        }
+        console.log("DEBUG: Pseudo saisi:", playerName);
+
+        currentPlayerName = playerName;
+        sessionStorage.setItem('playerName', playerName);
+
+        try {
+            console.log("DEBUG: Tentative de connexion anonyme Firebase...");
+            await auth.signInAnonymously();
+            currentPlayerId = auth.currentUser.uid;
+            console.log("DEBUG: Connexion réussie, UID:", currentPlayerId);
+
+            isGameCreator = true;
+
+            let gameExists = true;
+            let attempts = 0;
+            while (gameExists && attempts < 5) {
+                currentGameId = generateGameId();
+                const doc = await db.collection('games').doc(currentGameId).get();
+                gameExists = doc.exists;
+                console.log(`DEBUG: tentative ${attempts + 1}, ID = ${currentGameId}, existe: ${gameExists}`);
+                attempts++;
+            }
+
+            if (gameExists) {
+                showNotification("Erreur de création, réessaye !");
+                console.log("DEBUG: Toutes les tentatives ont échoué à générer un code unique.");
+                return;
+            }
+
+            console.log("DEBUG: Création de la partie dans Firestore...");
+            const batch = db.batch();
+            const gameRef = db.collection('games').doc(currentGameId);
+            const playerRef = gameRef.collection('players').doc(currentPlayerId);
+
+            batch.set(gameRef, { /* ... données de partie ... */ });
+            batch.set(playerRef, { /* ... données de joueur ... */ });
+
+            await batch.commit();
+            console.log("DEBUG: Partie créée et joueur enregistré.");
+
+            showLobbyScreen();
+            setupGameListeners();
+            startPresenceUpdates();
+            document.getElementById('join-sound').play();
+        } catch (error) {
+            console.error("ERREUR: createGame() a échoué:", error);
+            showNotification("Erreur de création. Vérifie ta connexion.");
+        }
+    }
+
+    async function joinGame() {
+        const playerName = document.getElementById('player-name').value.trim();
+        const gameId = document.getElementById('game-id').value.trim().toUpperCase();
+
+        if (!playerName) {
+            showNotification("Choisis un pseudo !");
+            console.log("DEBUG: Aucun pseudo saisi.");
+            return;
+        }
+        if (!gameId) {
+            showNotification("Entre le code de la partie !");
+            console.log("DEBUG: Aucun code de partie saisi.");
+            return;
+        }
+
+        console.log("DEBUG: Tentative de rejoindre la partie:", gameId);
+
+        currentPlayerName = playerName;
+        currentGameId = gameId;
+        sessionStorage.setItem('playerName', playerName);
+        sessionStorage.setItem('gameId', gameId);
+
+        try {
+            const gameDoc = await db.collection('games').doc(gameId).get();
+            if (!gameDoc.exists) {
+                showNotification("Aucune partie trouvée avec ce code !");
+                console.log("DEBUG: Partie inexistante.");
+                return;
+            }
+            console.log("DEBUG: Partie trouvée, statut:", gameDoc.data().status);
+
+            if (gameDoc.data().status !== GAME_PHASES.LOBBY) {
+                showNotification("Cette partie a déjà commencé !");
+                console.log("DEBUG: Partie déjà démarrée.");
+                return;
+            }
+
+            console.log("DEBUG: Connexion anonyme en cours...");
+            await auth.signInAnonymously();
+            currentPlayerId = auth.currentUser.uid;
+            console.log("DEBUG: Connexion réussie, UID:", currentPlayerId);
+
+            await db.collection('games').doc(gameId).collection('players')
+                .doc(currentPlayerId).set({
+                    pseudo: currentPlayerName,
+                    role: "",
+                    isAlive: true,
+                    isOnline: true,
+                    type: "player",
+                    score: 0,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+            console.log("DEBUG: Joueur ajouté à la partie avec succès.");
+            showLobbyScreen();
+            setupGameListeners();
+            startPresenceUpdates();
+            document.getElementById('join-sound').play();
+        } catch (error) {
+            console.error("ERREUR: joinGame() a échoué:", error);
+            showNotification("Erreur de connexion. Vérifie ta connexion.");
+        }
+    }
     </script>
 </body>
 </html>
